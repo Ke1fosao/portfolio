@@ -1,4 +1,5 @@
 import os
+import json
 import csv
 import hmac
 from io import StringIO
@@ -169,7 +170,46 @@ class AboutPageViewSet(VersionedModelMixin, AdminWritePublicReadMixin, viewsets.
         field_name = request.data.get('field')
         uploaded_file = request.FILES.get('file')
         allowed = {'hero_photo', 'resume_file', 'diploma_file'}
-        if field_name not in allowed or not uploaded_file:
+        if field_name == 'hero_photo':
+            original_file = request.FILES.get('original')
+            if not uploaded_file:
+                return Response({'detail': 'Передайте обрізане фото портрета.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            image_types = {'image/jpeg', 'image/png', 'image/webp'}
+            files_to_check = [uploaded_file]
+            if original_file:
+                files_to_check.append(original_file)
+            if any(file.content_type not in image_types for file in files_to_check):
+                return Response({'detail': 'Портрет має бути JPG, PNG або WEBP.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            crop_payload = request.data.get('crop')
+            crop_settings = {}
+            if crop_payload:
+                try:
+                    crop_settings = json.loads(crop_payload) if isinstance(crop_payload, str) else crop_payload
+                except (TypeError, ValueError):
+                    return Response({'detail': 'Некоректні дані кадрування.'}, status=status.HTTP_400_BAD_REQUEST)
+                if not isinstance(crop_settings, dict):
+                    return Response({'detail': 'Некоректні дані кадрування.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if instance.hero_photo:
+                instance.hero_photo.delete(save=False)
+            instance.hero_photo = uploaded_file
+            update_fields = ['hero_photo', 'hero_photo_crop', 'updated_at']
+
+            if original_file:
+                if instance.hero_photo_original:
+                    instance.hero_photo_original.delete(save=False)
+                instance.hero_photo_original = original_file
+                update_fields.append('hero_photo_original')
+
+            instance.hero_photo_crop = crop_settings
+            instance.save(update_fields=update_fields)
+            return Response(self.get_serializer(instance).data)
+
+        if not uploaded_file:
+            return Response({'detail': 'Передайте field і file.'}, status=status.HTTP_400_BAD_REQUEST)
+        if field_name not in allowed:
             return Response({'detail': 'Передайте field і file.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if field_name == 'hero_photo' and not uploaded_file.content_type.startswith('image/'):
@@ -192,6 +232,16 @@ class AboutPageViewSet(VersionedModelMixin, AdminWritePublicReadMixin, viewsets.
         field_name = request.data.get('field')
         if field_name not in {'hero_photo', 'resume_file', 'diploma_file'}:
             return Response({'detail': 'Невідоме поле.'}, status=status.HTTP_400_BAD_REQUEST)
+        if field_name == 'hero_photo':
+            for file_field_name in ['hero_photo', 'hero_photo_original']:
+                file_field = getattr(instance, file_field_name)
+                if file_field:
+                    file_field.delete(save=False)
+                setattr(instance, file_field_name, None)
+            instance.hero_photo_crop = {}
+            instance.save(update_fields=['hero_photo', 'hero_photo_original', 'hero_photo_crop', 'updated_at'])
+            return Response(self.get_serializer(instance).data)
+
         file_field = getattr(instance, field_name)
         if file_field:
             file_field.delete(save=False)

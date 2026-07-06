@@ -370,11 +370,15 @@ class CertificateSerializer(serializers.ModelSerializer):
 
 class AboutPageSerializer(serializers.ModelSerializer):
     hero_photo_url = serializers.SerializerMethodField()
+    hero_photo_original_url = serializers.SerializerMethodField()
     resume_file_url = serializers.SerializerMethodField()
     diploma_file_url = serializers.SerializerMethodField()
 
     def get_hero_photo_url(self, obj):
         return absolute_file_url(self, obj.hero_photo)
+
+    def get_hero_photo_original_url(self, obj):
+        return absolute_file_url(self, obj.hero_photo_original)
 
     def get_resume_file_url(self, obj):
         return absolute_file_url(self, obj.resume_file)

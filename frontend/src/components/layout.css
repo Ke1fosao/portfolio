@@ -192,3 +192,142 @@
   .mobile-menu-contact { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; margin-top: 16px; padding: 0 17px; border-radius: 16px; background: #d8ff80; color: #172019; font-size: 11px; font-weight: 900; }
   .scroll-top-button { bottom: 88px; }
 }
+
+@media (max-width: 820px) {
+  .site-shell { padding-bottom: 0; }
+  .header {
+    z-index: 150;
+    background: rgba(246, 245, 238, .86);
+    box-shadow: 0 12px 30px rgba(23, 32, 25, .06);
+  }
+  .header .mobile-nav { display: flex; gap: 9px; }
+  .header .mobile-nav button:last-child { display: inline-flex; }
+  .mobile-menu-trigger {
+    width: 50px;
+    height: 50px;
+    border-color: rgba(21, 21, 19, .18);
+    background: #151513;
+    color: #d8ff80;
+    box-shadow: 0 14px 30px rgba(21, 21, 19, .17);
+  }
+  .mobile-menu-trigger[aria-expanded="true"] {
+    background: #d8ff80;
+    color: #151513;
+  }
+  .mobile-bottom-dock { display: none !important; }
+  .mobile-menu-overlay {
+    z-index: 145;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    background:
+      radial-gradient(circle at 18% 18%, rgba(216,255,128,.18), transparent 30%),
+      rgba(8, 12, 9, .56);
+  }
+  .mobile-menu-sheet {
+    display: flex;
+    flex-direction: column;
+    width: min(410px, calc(100vw - 20px));
+    max-height: none;
+    height: calc(100dvh - max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    margin: 0 0 0 auto;
+    padding: 19px;
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at 94% 8%, rgba(216,255,128,.16), transparent 28%),
+      linear-gradient(180deg, #1a241c, #10140f 72%);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(18px) scale(.985);
+  }
+  .mobile-menu-overlay.is-open .mobile-menu-sheet {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
+  }
+  .mobile-menu-head {
+    padding: 5px 4px 17px;
+  }
+  .mobile-menu-head strong { font-size: clamp(24px, 8vw, 34px); }
+  .mobile-menu-primary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .mobile-menu-primary a {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 112px;
+    padding: 15px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 20px;
+    background: rgba(255,255,255,.07);
+    color: #fff;
+    transition: transform .28s cubic-bezier(.2,.8,.2,1), background .28s ease, color .28s ease;
+  }
+  .mobile-menu-primary a::before {
+    position: absolute;
+    inset: auto -30px -58px auto;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(216,255,128,.16);
+    content: '';
+  }
+  .mobile-menu-primary a.active,
+  .mobile-menu-primary a:hover {
+    background: #d8ff80;
+    color: #151513;
+    transform: translateY(-3px);
+  }
+  .mobile-menu-primary a strong {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(18px, 5.3vw, 24px);
+    line-height: 1;
+    letter-spacing: -.045em;
+  }
+  .mobile-menu-primary a svg {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+  }
+  .mobile-menu-sheet nav {
+    margin-top: 12px;
+    padding-bottom: 10px;
+  }
+  .mobile-menu-sheet nav a {
+    min-height: 62px;
+    border-bottom-color: rgba(255,255,255,.095);
+    transition: padding-left .24s ease, color .24s ease, background .24s ease;
+  }
+  .mobile-menu-sheet nav a:hover,
+  .mobile-menu-sheet nav a.active {
+    padding-left: 10px;
+    color: #d8ff80;
+    background: rgba(255,255,255,.035);
+  }
+  .mobile-menu-contact {
+    min-height: 58px;
+    margin-top: auto;
+    box-shadow: 0 18px 42px rgba(216,255,128,.16);
+  }
+  .scroll-top-button { bottom: 22px; }
+}
+
+@media (max-width: 460px) {
+  .mobile-menu-sheet {
+    width: calc(100vw - 16px);
+    padding: 16px;
+    border-radius: 24px;
+  }
+  .mobile-menu-primary { grid-template-columns: 1fr; }
+  .mobile-menu-primary a { min-height: 86px; }
+}

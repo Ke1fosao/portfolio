@@ -16,6 +16,9 @@ const links = [
   ['/contact', 'Контакти'],
 ]
 
+const mobilePrimaryLinks = links.filter(([to]) => ['/', '/contact'].includes(to))
+const mobileSecondaryLinks = links.filter(([to]) => !['/', '/contact'].includes(to))
+
 export default function Layout({ children }) {
   const [settings, setSettings] = useState(fallbackSettings)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -38,6 +41,15 @@ export default function Layout({ children }) {
   useEffect(() => {
     document.body.classList.toggle('mobile-menu-open', menuOpen)
     return () => document.body.classList.remove('mobile-menu-open')
+  }, [menuOpen])
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
 
   useEffect(() => {
@@ -77,20 +89,25 @@ export default function Layout({ children }) {
             <button className="icon-btn" onClick={() => setSearchOpen(true)} aria-label="Пошук">
               <Search size={18} />
             </button>
-            <button className="icon-btn" onClick={() => setMenuOpen((value) => !value)} aria-label="Меню">
+            <button className="icon-btn mobile-menu-trigger" onClick={() => setMenuOpen((value) => !value)} aria-label="Меню" aria-expanded={menuOpen} aria-controls="mobile-site-menu">
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
         <div className={`mobile-menu-overlay ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen}>
-          <div className="mobile-menu-sheet" onClick={(event) => event.stopPropagation()}>
+          <div className="mobile-menu-sheet" id="mobile-site-menu" role="dialog" aria-modal="true" aria-label="Мобільне меню" onClick={(event) => event.stopPropagation()}>
             <div className="mobile-menu-head"><div><small>Навігація</small><strong>Куди перейдемо?</strong></div><button onClick={() => setMenuOpen(false)} aria-label="Закрити меню"><X size={20} /></button></div>
+            <div className="mobile-menu-primary">
+              {mobilePrimaryLinks.map(([to, label]) => (
+                <NavLink key={to} to={to} end={to === '/'} onClick={() => setMenuOpen(false)}><strong>{label}</strong><ArrowUpRight size={18} /></NavLink>
+              ))}
+            </div>
             <nav>
-              {links.map(([to, label], index) => (
+              {mobileSecondaryLinks.map(([to, label], index) => (
                 <NavLink key={to} to={to} end={to === '/'} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span><strong>{label}</strong><ArrowUpRight size={18} /></NavLink>
               ))}
-              <NavLink to="/work-terms" onClick={() => setMenuOpen(false)}><span>07</span><strong>Умови роботи</strong><ArrowUpRight size={18} /></NavLink>
+              <NavLink to="/work-terms" onClick={() => setMenuOpen(false)}><span>05</span><strong>Умови роботи</strong><ArrowUpRight size={18} /></NavLink>
             </nav>
             <a className="mobile-menu-contact" href={telegram} target="_blank" rel="noreferrer">Написати в Telegram <ArrowUpRight size={18} /></a>
           </div>

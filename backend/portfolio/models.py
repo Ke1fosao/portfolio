@@ -509,6 +509,8 @@ class AboutPage(models.Model):
     hero_title = models.CharField(max_length=320, default='Чотири роки тому — лише мрія. Сьогодні — продукти для реального бізнесу.')
     hero_text = models.TextField(default='Я Дмитро, мені 18. Самостійно створюю сучасні сайти, вебсистеми та AI-інтеграції — від першої ідеї до запуску й подальшого розвитку.')
     hero_photo = models.ImageField(upload_to='about/portrait/', blank=True, null=True)
+    hero_photo_original = models.ImageField(upload_to='about/portrait/originals/', blank=True, null=True)
+    hero_photo_crop = models.JSONField(default=dict, blank=True)
     hero_photo_alt = models.CharField(max_length=220, default='Портрет Дмитра Ковтуновича')
     story_title = models.CharField(max_length=320, default='Я не прокинувся програмістом за одну ніч. Я поступово ним став.')
     story_text = models.TextField(default='Мій шлях почався з мрії стати програмістом і перших невеликих програм. Чотири роки навчання перетворили окремі знання на вміння створювати повноцінні цифрові продукти.')

@@ -21,3 +21,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>,
 )
+
+const bootLoader = document.getElementById('boot-loader')
+const finishBoot = () => {
+  document.body.classList.remove('app-booting')
+  document.documentElement.classList.remove('app-booting')
+  if (!bootLoader) return
+  bootLoader.classList.add('is-hiding')
+  window.setTimeout(() => bootLoader.remove(), 460)
+}
+
+window.requestAnimationFrame(() => {
+  window.requestAnimationFrame(finishBoot)
+})

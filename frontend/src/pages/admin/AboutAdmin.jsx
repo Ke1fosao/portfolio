@@ -65,7 +65,7 @@ export default function AboutAdmin() {
       </div>
 
       <aside className="admin-about-media">
-        <ImageCropUploader title="Головне фото" hint="Формат 4:5. Перетягни фото, відрегулюй масштаб і за потреби трохи поверни." currentUrl={form.hero_photo_url} uploadUrl="/about-page/upload/" removeUrl="/about-page/remove_file/" field="hero_photo" aspect={4/5} onUploaded={(data) => setForm({ ...fallbackAboutPage, ...data })}/>
+        <ImageCropUploader title="Головне фото" hint="Формат 4:5. Перетягни фото, відрегулюй масштаб і за потреби трохи поверни." currentUrl={form.hero_photo_url} originalUrl={form.hero_photo_original_url} cropSettings={form.hero_photo_crop} uploadUrl="/about-page/upload/" removeUrl="/about-page/remove_file/" field="hero_photo" aspect={4/5} onUploaded={(data) => setForm({ ...fallbackAboutPage, ...data })}/>
         <ImageCropUploader title="Обкладинка BABY LAND" hint="Завантажений кадр автоматично замінить кодову презентацію проєкту по всьому сайту." currentUrl={babyland.uploaded_cover_url} uploadUrl={`/projects/${babyland.slug || 'baby-land'}/upload_cover/`} removeUrl={`/projects/${babyland.slug || 'baby-land'}/remove_cover/`} aspect={16/10} onUploaded={setBabyland}/>
         <FileUploader title="Резюме" hint="Рекомендовано PDF. Посилання з’явиться на сторінці автоматично." currentUrl={form.resume_file_url} field="resume_file" onUploaded={(data) => setForm({ ...fallbackAboutPage, ...data })}/>
         <FileUploader title="Диплом" hint="PDF або зображення диплома. До завантаження показується акуратний статус очікування." currentUrl={form.diploma_file_url} field="diploma_file" onUploaded={(data) => setForm({ ...fallbackAboutPage, ...data })}/>
