@@ -28,7 +28,7 @@ export const resources = {
   },
   posts: {
     label: 'Блог', endpoint: '/posts/', lookup: 'slug', description: 'Статті, обкладинки та статус публікації.',
-    fields: [['title','Назва','text'],['slug','Slug','text'],['excerpt','Короткий опис','textarea'],['content','Текст','textarea'],['cover_image_url','Зовнішня обкладинка URL','text'],['status','Статус','select',[['draft','Чернетка'],['published','Опубліковано']]],['published_at','Дата ISO','datetime']],
+    fields: [['title','Назва','text'],['slug','Slug','text'],['category','Рубрика','text'],['excerpt','Короткий опис','textarea'],['content','Текст','textarea'],['cover_image_url','Зовнішня обкладинка URL','text'],['seo_title','SEO title','text'],['seo_description','SEO description','textarea'],['is_featured','Головна стаття','checkbox'],['status','Статус','select',[['draft','Чернетка'],['scheduled','Заплановано'],['published','Опубліковано']]],['published_at','Дата публікації','datetime']],
   },
   certificates: {
     label: 'Документи', endpoint: '/certificates/', description: 'Додаткові сертифікати та документи.',

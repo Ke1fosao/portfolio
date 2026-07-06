@@ -69,7 +69,7 @@ export default function BlogDetail() {
 
   return (
     <>
-      <SEO title={post.title} description={post.excerpt} path={`/blog/${post.slug}`} image={articleImage} type="article" schema={[breadcrumbSchema([{ name: 'Головна', path: '/' }, { name: 'Блог', path: '/blog' }, { name: post.title, path: `/blog/${post.slug}` }]), articleSchema]} />
+      <SEO title={post.seo_title || post.title} description={post.seo_description || post.excerpt} path={`/blog/${post.slug}`} image={articleImage} type="article" schema={[breadcrumbSchema([{ name: 'Головна', path: '/' }, { name: 'Блог', path: '/blog' }, { name: post.title, path: `/blog/${post.slug}` }]), articleSchema]} />
     <div className="blog-detail-page modern-page">
       <div className="article-progress" style={{ transform: `scaleX(${progress / 100})` }} />
       <section className="article-hero">

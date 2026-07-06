@@ -8,6 +8,7 @@ import './styles/overview-v4.css'
 import './styles/site-admin-v2.css'
 import './styles/projects-admin-v2.css'
 import './styles/services-admin-v2.css'
+import './styles/blog-admin-v2.css'
 import './styles/about-project-admin-v2.css'
 import './styles/about-admin-v3.css'
 

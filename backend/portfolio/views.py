@@ -282,7 +282,8 @@ class BlogPostViewSet(VersionedModelMixin, AdminWritePublicReadMixin, viewsets.M
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.is_authenticated:
-            qs = qs.filter(status='published')
+            now = timezone.now()
+            qs = qs.filter(Q(status='published') | Q(status='scheduled', published_at__lte=now))
         return qs
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated], parser_classes=[MultiPartParser, FormParser])
@@ -295,6 +296,15 @@ class BlogPostViewSet(VersionedModelMixin, AdminWritePublicReadMixin, viewsets.M
             post.cover_image.delete(save=False)
         post.cover_image = uploaded_file
         post.save(update_fields=['cover_image'])
+        return Response(self.get_serializer(post).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def remove_cover(self, request, slug=None):
+        post = self.get_object()
+        if post.cover_image:
+            post.cover_image.delete(save=False)
+            post.cover_image = None
+            post.save(update_fields=['cover_image'])
         return Response(self.get_serializer(post).data)
 
 

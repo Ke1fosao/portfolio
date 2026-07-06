@@ -76,6 +76,13 @@ class BlogPostSerializer(serializers.ModelSerializer):
     def get_uploaded_cover_url(self, obj):
         return absolute_file_url(self, obj.cover_image)
 
+    def validate(self, attrs):
+        status_value = attrs.get('status', getattr(self.instance, 'status', 'draft'))
+        published_at = attrs.get('published_at', getattr(self.instance, 'published_at', None))
+        if status_value == 'scheduled' and not published_at:
+            raise serializers.ValidationError({'published_at': 'Для запланованої статті вкажіть дату й час публікації.'})
+        return attrs
+
     class Meta:
         model = BlogPost
         fields = '__all__'

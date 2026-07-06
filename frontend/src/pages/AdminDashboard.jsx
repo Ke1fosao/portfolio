@@ -5,6 +5,7 @@ import OverviewAdmin from './admin/OverviewAdmin'
 import ResourceAdmin from './admin/ResourceAdmin'
 import ProjectsAdmin from './admin/ProjectsAdmin'
 import ServicesAdmin from './admin/ServicesAdmin'
+import BlogAdmin from './admin/BlogAdmin'
 import SiteAdmin from './admin/SiteAdmin'
 import AboutAdminRouter from './admin/about/AboutAdminRouter'
 import LeadCrmAdmin from './admin/LeadCrmAdmin'
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   if (section === 'home' || section === 'site') content = <SiteAdmin />
   else if (section === 'projects') content = <ProjectsAdmin />
   else if (section === 'services') content = <ServicesAdmin />
+  else if (section === 'blog') content = <BlogAdmin />
   else if (section === 'about') content = <AboutAdminRouter subsection={subsection} />
   else if (section === 'contact') content = <LeadCrmAdmin />
   else if (section === 'notifications') content = <NotificationAdmin />

@@ -29,8 +29,8 @@ export default function Blog() {
 
   const categories = useMemo(() => ['Усі', ...new Set(posts.map((post) => post.category || 'Практика'))], [posts])
   const filtered = useMemo(() => filter === 'Усі' ? posts : posts.filter((post) => (post.category || 'Практика') === filter), [posts, filter])
-  const featured = filtered[0]
-  const rest = filtered.slice(1)
+  const featured = filtered.find((post) => post.is_featured) || filtered[0]
+  const rest = filtered.filter((post) => post !== featured)
 
   return (
     <div className="blog-page modern-page">
