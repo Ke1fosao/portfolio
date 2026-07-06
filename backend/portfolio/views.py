@@ -18,7 +18,8 @@ from rest_framework.permissions import BasePermission
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import (
     SiteSettings, Service, Project, Testimonial, PricingPlan, FAQ,
     BlogPost, ContactLead, TelegramBotUser, PageSection, MediaAsset,
@@ -93,6 +94,14 @@ class AdminTokenObtainPairView(TokenObtainPairView):
             cache.set(lock_key, until.timestamp(), timeout=settings_obj.login_lockout_minutes * 60)
         log_action(request, action='login_failed', entity_type='auth', description='Failed admin login', result='failed')
         return Response({'detail': 'Invalid username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class AdminTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except (TokenError, get_user_model().DoesNotExist):
+            return Response({'detail': 'Session expired. Please sign in again.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class VersionedModelMixin:
@@ -458,6 +467,7 @@ class PageSectionViewSet(VersionedModelMixin, viewsets.ModelViewSet):
     queryset = PageSection.objects.all()
     serializer_class = PageSectionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
     admin_scope = 'content'
 
     def get_queryset(self):
@@ -587,15 +597,21 @@ class MediaAssetViewSet(VersionedModelMixin, viewsets.ModelViewSet):
         return Response(self.get_serializer(asset).data)
 
 
-class SeoMetadataViewSet(VersionedModelMixin, viewsets.ModelViewSet):
+class SeoMetadataViewSet(VersionedModelMixin, AdminWritePublicReadMixin, viewsets.ModelViewSet):
     queryset = SeoMetadata.objects.all()
     serializer_class = SeoMetadataSerializer
-    permission_classes = [permissions.IsAuthenticated]
     admin_scope = 'seo'
 
     def get_queryset(self):
         qs = super().get_queryset()
         issue_filter = self.request.query_params.get('filter')
+        path_value = self.request.query_params.get('path')
+        page_key = self.request.query_params.get('page_key')
+        if path_value is not None:
+            normalized = path_value.rstrip('/') or '/'
+            qs = qs.filter(path=normalized)
+        if page_key:
+            qs = qs.filter(page_key=page_key)
         if issue_filter == 'noindex':
             qs = qs.filter(index=False)
         elif issue_filter == 'missing_title':
@@ -609,22 +625,96 @@ class SeoMetadataViewSet(VersionedModelMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def seed_defaults(self, request):
         defaults = [
-            ('home', '/', 'Головна'),
-            ('about', '/about', 'Про мене'),
-            ('projects', '/projects', 'Проєкти'),
-            ('services', '/services', 'Послуги'),
-            ('pricing', '/pricing', 'Ціни'),
-            ('blog', '/blog', 'Блог'),
-            ('contact', '/contact', 'Контакти'),
+            {
+                'page_key': 'home', 'path': '/', 'label': 'Головна',
+                'seo_title': 'Full-stack developer: сайти, вебсистеми та AI',
+                'seo_description': 'Розробка сучасних сайтів, вебсистем та AI-автоматизації для бізнесу в Рівному та по Україні.',
+                'focus_keyword': 'розробка сайтів Рівне', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'about', 'path': '/about', 'label': 'Про мене',
+                'seo_title': 'Про Дмитра Ковтуновича — Full-stack developer',
+                'seo_description': 'Дмитро Ковтунович — full-stack developer із Рівного. Python, Django, React, бази даних та AI-інтеграції.',
+                'focus_keyword': 'full-stack developer Рівне', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'projects', 'path': '/projects', 'label': 'Проєкти',
+                'seo_title': 'Роботи та кейси з веброзробки',
+                'seo_description': 'Портфоліо Дмитра Ковтуновича: сайти, вебсистеми, кастомні адмінпанелі та AI-рішення для бізнесу.',
+                'focus_keyword': 'портфоліо веброзробника', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'services', 'path': '/services', 'label': 'Послуги',
+                'seo_title': 'Послуги з веброзробки та AI-автоматизації',
+                'seo_description': 'Сайти для бізнесу, вебсистеми, особисті кабінети, інтернет-магазини та AI-автоматизація під конкретні задачі.',
+                'focus_keyword': 'послуги веброзробки', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'pricing', 'path': '/pricing', 'label': 'Ціни',
+                'seo_title': 'Вартість розробки сайтів і вебсистем',
+                'seo_description': 'Орієнтовна вартість сайтів, вебсистем і AI-рішень. Прозорий склад робіт та індивідуальна оцінка проєкту.',
+                'focus_keyword': 'ціна розробки сайту', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'blog', 'path': '/blog', 'label': 'Блог',
+                'seo_title': 'Блог про сайти, автоматизацію та AI',
+                'seo_description': 'Практичні матеріали про веброзробку, автоматизацію бізнесу, заявки, AI та створення цифрових продуктів.',
+                'focus_keyword': 'блог про веброзробку', 'og_image_url': '/assets/blog-automation.svg',
+            },
+            {
+                'page_key': 'contact', 'path': '/contact', 'label': 'Контакти',
+                'seo_title': 'Контакти веброзробника Дмитра Ковтуновича',
+                'seo_description': 'Зв’яжіться з Дмитром Ковтуновичем у Telegram, телефоном або email та залиште заявку на розробку сайту чи вебсистеми.',
+                'focus_keyword': 'веброзробник контакти', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'work-terms', 'path': '/work-terms', 'label': 'Умови роботи',
+                'seo_title': 'Умови роботи над сайтом або вебсистемою',
+                'seo_description': 'Як проходить старт розробки, передоплата, правки, передача проєкту, підтримка та погодження результату.',
+                'focus_keyword': 'умови розробки сайту', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'privacy', 'path': '/privacy', 'label': 'Конфіденційність',
+                'seo_title': 'Політика конфіденційності сайту',
+                'seo_description': 'Правила збору, використання, зберігання та захисту персональних даних користувачів сайту портфоліо.',
+                'focus_keyword': 'політика конфіденційності', 'og_image_url': '/assets/og-image.png',
+            },
+            {
+                'page_key': 'terms', 'path': '/terms', 'label': 'Умови використання',
+                'seo_title': 'Умови використання сайту',
+                'seo_description': 'Правила користування сайтом, надсилання заявок, авторські права та обмеження відповідальності.',
+                'focus_keyword': 'умови використання сайту', 'og_image_url': '/assets/og-image.png',
+            },
         ]
-        for page_key, path_value, title in defaults:
-            SeoMetadata.objects.get_or_create(
-                page_key=page_key,
-                content_type='page',
-                object_id='',
-                defaults={'path': path_value, 'seo_title': title, 'slug': page_key, 'canonical_url': path_value},
+        for entry in defaults:
+            record, created = SeoMetadata.objects.get_or_create(
+                page_key=entry['page_key'], content_type='page', object_id='',
+                defaults={
+                    'path': entry['path'], 'seo_title': entry['seo_title'],
+                    'seo_description': entry['seo_description'], 'slug': entry['page_key'],
+                    'canonical_url': entry['path'], 'og_title': entry['seo_title'],
+                    'og_description': entry['seo_description'], 'og_image_url': entry['og_image_url'],
+                    'focus_keyword': entry['focus_keyword'],
+                },
             )
-        return Response(self.get_serializer(self.get_queryset(), many=True).data)
+            if not created:
+                changed = []
+                upgrades = {
+                    'path': entry['path'], 'canonical_url': entry['path'], 'slug': entry['page_key'],
+                    'seo_description': entry['seo_description'], 'og_title': entry['seo_title'],
+                    'og_description': entry['seo_description'], 'og_image_url': entry['og_image_url'],
+                    'focus_keyword': entry['focus_keyword'],
+                }
+                if not record.seo_title or record.seo_title == entry['label']:
+                    record.seo_title = entry['seo_title']
+                    changed.append('seo_title')
+                for field, value in upgrades.items():
+                    if not getattr(record, field):
+                        setattr(record, field, value)
+                        changed.append(field)
+                if changed:
+                    record.save(update_fields=[*changed, 'updated_at'])
+        return Response(self.get_serializer(SeoMetadata.objects.all(), many=True).data)
 
 
 class EditorDraftViewSet(viewsets.ModelViewSet):

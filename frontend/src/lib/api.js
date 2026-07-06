@@ -7,6 +7,11 @@ const api = axios.create({
   timeout: 10000,
 })
 
+const clearAdminSession = () => {
+  localStorage.removeItem('portfolio_access_token')
+  localStorage.removeItem('portfolio_refresh_token')
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('portfolio_access_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
@@ -17,6 +22,13 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config
+    const isRefreshRequest = original?.url?.includes('/auth/token/refresh/')
+
+    if (isRefreshRequest && error.response?.status >= 400) {
+      clearAdminSession()
+      return Promise.reject(error)
+    }
+
     if (error.response?.status === 401 && !original?._retry) {
       const refresh = localStorage.getItem('portfolio_refresh_token')
       if (refresh) {
@@ -27,8 +39,7 @@ api.interceptors.response.use(
           original.headers.Authorization = `Bearer ${response.data.access}`
           return api(original)
         } catch {
-          localStorage.removeItem('portfolio_access_token')
-          localStorage.removeItem('portfolio_refresh_token')
+          clearAdminSession()
         }
       }
     }

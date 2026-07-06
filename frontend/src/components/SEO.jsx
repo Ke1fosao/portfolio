@@ -32,35 +32,41 @@ export default function SEO({
   title,
   description,
   path = '/',
+  canonical = '',
   image = '/assets/og-image.png',
+  ogTitle = '',
+  ogDescription = '',
   type = 'website',
   noindex = false,
+  follow = true,
   schema = [],
 }) {
   useEffect(() => {
     const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
     const siteUrl = configuredSiteUrl || runtimeOrigin
-    const canonical = absoluteUrl(path, siteUrl)
+    const canonicalUrl = absoluteUrl(canonical || path, siteUrl)
     const ogImage = absoluteUrl(image, siteUrl)
     const fullTitle = title?.includes('Ковтунович') ? title : `${title} — Ковтунович Дмитро`
+    const resolvedOgTitle = ogTitle || fullTitle || SITE_NAME
+    const resolvedOgDescription = ogDescription || description
 
     document.title = fullTitle || SITE_NAME
     upsertMeta('meta[name="description"]', { name: 'description', content: description })
-    upsertMeta('meta[name="robots"]', { name: 'robots', content: noindex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large' })
+    upsertMeta('meta[name="robots"]', { name: 'robots', content: `${noindex ? 'noindex' : 'index'},${follow ? 'follow' : 'nofollow'},max-image-preview:large` })
     upsertMeta('meta[property="og:type"]', { property: 'og:type', content: type })
     upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: SITE_NAME })
     upsertMeta('meta[property="og:locale"]', { property: 'og:locale', content: 'uk_UA' })
-    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: fullTitle || SITE_NAME })
-    upsertMeta('meta[property="og:description"]', { property: 'og:description', content: description })
-    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonical })
+    upsertMeta('meta[property="og:title"]', { property: 'og:title', content: resolvedOgTitle })
+    upsertMeta('meta[property="og:description"]', { property: 'og:description', content: resolvedOgDescription })
+    upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
     upsertMeta('meta[property="og:image"]', { property: 'og:image', content: ogImage })
     upsertMeta('meta[property="og:image:width"]', { property: 'og:image:width', content: '1200' })
     upsertMeta('meta[property="og:image:height"]', { property: 'og:image:height', content: '630' })
     upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary_large_image' })
-    upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: fullTitle || SITE_NAME })
-    upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: description })
+    upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: resolvedOgTitle })
+    upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: resolvedOgDescription })
     upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image', content: ogImage })
-    upsertLink('canonical', canonical)
+    upsertLink('canonical', canonicalUrl)
 
     document.querySelectorAll('script[data-portfolio-schema]').forEach((node) => node.remove())
     const schemas = Array.isArray(schema) ? schema.filter(Boolean) : [schema].filter(Boolean)
@@ -75,7 +81,7 @@ export default function SEO({
     return () => {
       document.querySelectorAll('script[data-portfolio-schema]').forEach((node) => node.remove())
     }
-  }, [title, description, path, image, type, noindex, schema])
+  }, [title, description, path, canonical, image, ogTitle, ogDescription, type, noindex, follow, schema])
 
   return null
 }

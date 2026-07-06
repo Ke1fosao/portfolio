@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import SEO, { breadcrumbSchema, personSchema } from './SEO'
+import api, { unwrap } from '../lib/api'
 import { fallbackPosts, fallbackProjects, fallbackServices, fallbackSettings } from '../data/fallbackData'
 
 const staticPages = {
@@ -16,32 +17,57 @@ const staticPages = {
   '/terms': ['Умови використання сайту', 'Правила користування сайтом, надсилання заявок, авторські права та обмеження відповідальності.', '/assets/og-image.png'],
 }
 
+function normalizePath(pathname) {
+  if (!pathname || pathname === '/') return '/'
+  return pathname.replace(/\/+$/, '') || '/'
+}
+
 export default function RouteSEO({ settings = fallbackSettings }) {
   const location = useLocation()
+  const pathname = normalizePath(location.pathname)
+  const [storedMeta, setStoredMeta] = useState(null)
   const isDynamicDetail = /^\/(projects|blog)\/[^/]+\/?$/.test(location.pathname)
+
+  useEffect(() => {
+    let active = true
+    setStoredMeta(null)
+    if (isDynamicDetail || !staticPages[pathname]) return () => { active = false }
+    api.get(`/seo-metadata/?path=${encodeURIComponent(pathname)}`)
+      .then((response) => {
+        const data = unwrap(response)
+        if (active) setStoredMeta(Array.isArray(data) ? data[0] || null : null)
+      })
+      .catch(() => { if (active) setStoredMeta(null) })
+    return () => { active = false }
+  }, [pathname, isDynamicDetail])
+
   const data = useMemo(() => {
-    if (staticPages[location.pathname]) return staticPages[location.pathname]
-    if (location.pathname.startsWith('/projects/')) {
-      const slug = location.pathname.split('/').filter(Boolean)[1]
+    if (staticPages[pathname]) return staticPages[pathname]
+    if (pathname.startsWith('/projects/')) {
+      const slug = pathname.split('/').filter(Boolean)[1]
       const project = fallbackProjects.find((item) => item.slug === slug)
       if (project) return [project.title, project.summary, project.slug === 'baby-land' ? '/assets/baby-land-og.png' : (project.cover_image_url || '/assets/og-image.png')]
     }
-    if (location.pathname.startsWith('/blog/')) {
-      const slug = location.pathname.split('/').filter(Boolean)[1]
+    if (pathname.startsWith('/blog/')) {
+      const slug = pathname.split('/').filter(Boolean)[1]
       const post = fallbackPosts.find((item) => item.slug === slug)
       if (post) return [post.title, post.excerpt, post.cover_image_url || '/assets/blog-automation.svg']
     }
     return ['Сторінку не знайдено', 'Запитаної сторінки не існує або її адресу змінено.', '/assets/og-image.png']
-  }, [location.pathname])
+  }, [pathname])
 
-  const [title, description, image] = data
+  const [fallbackTitle, fallbackDescription, fallbackImage] = data
+  const title = storedMeta?.seo_title || fallbackTitle
+  const description = storedMeta?.seo_description || fallbackDescription
+  const image = storedMeta?.og_image_url_resolved || storedMeta?.og_image_url || fallbackImage
+
   const schemas = useMemo(() => {
-    const result = [breadcrumbSchema(location.pathname === '/' ? [{ name: 'Головна', path: '/' }] : [
+    const result = [breadcrumbSchema(pathname === '/' ? [{ name: 'Головна', path: '/' }] : [
       { name: 'Головна', path: '/' },
-      { name: title, path: location.pathname },
+      { name: title, path: pathname },
     ])]
-    if (location.pathname === '/' || location.pathname === '/about') result.push(personSchema(settings))
-    if (location.pathname === '/services') {
+    if (pathname === '/' || pathname === '/about') result.push(personSchema(settings))
+    if (pathname === '/services') {
       result.push({
         '@context': 'https://schema.org',
         '@type': 'ItemList',
@@ -53,9 +79,21 @@ export default function RouteSEO({ settings = fallbackSettings }) {
         })),
       })
     }
+    if (storedMeta?.structured_data && Object.keys(storedMeta.structured_data).length) result.push(storedMeta.structured_data)
     return result
-  }, [location.pathname, settings, title])
+  }, [pathname, settings, title, storedMeta])
 
   if (isDynamicDetail) return null
-  return <SEO title={title} description={description} path={location.pathname} image={image} noindex={!staticPages[location.pathname] && !location.pathname.startsWith('/projects/') && !location.pathname.startsWith('/blog/')} schema={schemas} />
+  return <SEO
+    title={title}
+    description={description}
+    ogTitle={storedMeta?.og_title || title}
+    ogDescription={storedMeta?.og_description || description}
+    path={pathname}
+    canonical={storedMeta?.canonical_url || pathname}
+    image={image}
+    noindex={storedMeta ? !storedMeta.index : !staticPages[pathname]}
+    follow={storedMeta ? storedMeta.follow : true}
+    schema={schemas}
+  />
 }
