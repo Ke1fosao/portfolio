@@ -1,0 +1,54 @@
+.modern-page {
+  --modern-green: #205d3b;
+  --modern-green-2: #2f9e5b;
+  --modern-lime: #d8ff80;
+  --modern-dark: #172019;
+  --modern-soft: #e8efe6;
+  --modern-line: rgba(24, 58, 35, .15);
+  background: #f5f3ec;
+  color: #172019;
+  overflow: clip;
+}
+.modern-page .container-shell { width: min(1320px, calc(100% - 40px)); }
+.modern-hero { position: relative; padding: 100px 0 90px; overflow: hidden; }
+.modern-hero::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, transparent calc(25% - .5px), rgba(32,93,59,.07) 25%, transparent calc(25% + .5px)),
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(32,93,59,.07) 50%, transparent calc(50% + .5px)),
+    linear-gradient(90deg, transparent calc(75% - .5px), rgba(32,93,59,.07) 75%, transparent calc(75% + .5px));
+  content: '';
+  pointer-events: none;
+}
+.modern-hero > * { position: relative; z-index: 1; }
+.modern-hero-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(390px, .88fr); gap: 7vw; align-items: center; }
+.modern-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 34px; color: #67726a; font-size: 10px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+.modern-kicker span { color: var(--modern-green); }
+.modern-kicker i { width: 28px; height: 1px; background: var(--modern-line); }
+.modern-hero h1 { max-width: 970px; margin: 0; font-size: clamp(55px, 7.2vw, 112px); font-weight: 700; line-height: .9; letter-spacing: -.072em; }
+.modern-hero h1 em { color: var(--modern-green-2); font-style: normal; }
+.modern-hero p { max-width: 720px; margin: 32px 0 0; color: #68736b; font-size: clamp(17px, 1.5vw, 22px); line-height: 1.65; }
+.modern-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 35px; }
+.modern-button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 19px; border: 1px solid var(--modern-line); border-radius: 999px; overflow: hidden; font-size: 12px; font-weight: 850; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, background .3s ease, color .3s ease; }
+.modern-button:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(25,72,45,.13); }
+.modern-button svg { transition: transform .3s ease; }
+.modern-button:hover svg { transform: translateX(4px); }
+.modern-button.is-primary, .modern-button.is-dark { border-color: var(--modern-dark); background: var(--modern-dark); color: #fff; }
+.modern-button.is-secondary { background: rgba(255,255,255,.5); }
+.modern-button.is-lime { border-color: var(--modern-lime); background: var(--modern-lime); color: var(--modern-dark); }
+.modern-section { padding: 115px 0; border-top: 1px solid var(--modern-line); }
+.direct-start-section { padding-top: 48px; border-top: 0; }
+.modern-section-heading { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .55fr); gap: 7vw; align-items: end; margin-bottom: 54px; }
+.modern-section-heading > div > span, .compact-heading span, .contact-section-label, .babyland-story-title > span, .babyland-feature-sticky > span, .babyland-tech-grid > div:first-child > span, .default-project-story > div:first-child > span, .default-feature-layout > div:first-child > span { display: block; margin-bottom: 16px; color: var(--modern-green-2); font-size: 10px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.modern-section-heading h1, .modern-section-heading h2, .services-process-sticky h2, .contact-direct-panel h1, .contact-direct-panel h2, .contact-form-heading h2, .babyland-story-title h2, .babyland-feature-sticky h2, .babyland-tech-grid h2, .default-project-story h2, .default-feature-layout h2 { margin: 0; font-size: clamp(42px, 5.5vw, 78px); font-weight: 700; line-height: .96; letter-spacing: -.06em; }
+.modern-section-heading > p { margin: 0; color: #6d776f; line-height: 1.75; }
+.compact-heading { grid-template-columns: 1fr; }
+.modern-cta-wrap { padding-top: 60px; }
+.modern-cta { position: relative; min-height: 440px; padding: 65px; border-radius: 36px; overflow: hidden; background: var(--modern-dark); color: #fff; }
+.modern-cta::before { position: absolute; right: -110px; top: -130px; width: 390px; height: 390px; border-radius: 50%; background: var(--modern-lime); content: ''; opacity: .9; }
+.modern-cta::after { position: absolute; right: 160px; bottom: -240px; width: 420px; height: 420px; border: 1px solid rgba(216,255,128,.24); border-radius: 50%; content: ''; box-shadow: 0 0 0 75px rgba(216,255,128,.03), 0 0 0 150px rgba(216,255,128,.02); }
+.modern-cta > * { position: relative; z-index: 1; }
+.modern-cta > span { display: block; color: var(--modern-lime); font-size: 10px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+.modern-cta h2 { max-width: 930px; margin: 75px 0 40px; font-size: clamp(42px, 5.7vw, 82px); font-weight: 650; line-height: .96; letter-spacing: -.06em; }

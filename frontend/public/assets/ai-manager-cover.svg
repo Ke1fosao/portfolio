@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#DDE8FF"/>
+  <circle cx="1320" cy="210" r="290" fill="#9DB6FF" opacity=".55"/>
+  <circle cx="260" cy="860" r="320" fill="#D8FF8C" opacity=".8"/>
+  <rect x="110" y="85" width="1380" height="830" rx="44" fill="#111216"/>
+  <rect x="150" y="125" width="280" height="750" rx="28" fill="#1C1E24"/>
+  <text x="195" y="190" font-family="Arial" font-size="34" font-weight="800" fill="#fff">AI Manager</text>
+  <text x="195" y="270" font-family="Arial" font-size="21" fill="#9EA5B5">Діалоги</text><text x="195" y="325" font-family="Arial" font-size="21" fill="#9EA5B5">Ліди</text><text x="195" y="380" font-family="Arial" font-size="21" fill="#9EA5B5">База знань</text><text x="195" y="435" font-family="Arial" font-size="21" fill="#9EA5B5">Сценарії</text><text x="195" y="490" font-family="Arial" font-size="21" fill="#9EA5B5">Налаштування</text>
+  <text x="490" y="190" font-family="Arial" font-size="42" font-weight="800" fill="#fff">Розумні продажі у Telegram</text>
+  <rect x="490" y="235" width="940" height="120" rx="24" fill="#1E2128"/>
+  <circle cx="550" cy="295" r="28" fill="#D8FF8C"/><text x="600" y="286" font-family="Arial" font-size="21" fill="#fff">Новий клієнт питає про сайт для салону.</text><text x="600" y="322" font-family="Arial" font-size="18" fill="#9EA5B5">AI визначив намір: комерційна заявка · висока ймовірність</text>
+  <rect x="490" y="395" width="610" height="390" rx="30" fill="#F4F5F8"/>
+  <text x="535" y="455" font-family="Arial" font-size="28" font-weight="800" fill="#1B1C20">Діалог</text>
+  <rect x="535" y="500" width="450" height="82" rx="22" fill="#E3E7F3"/><text x="565" y="550" font-family="Arial" font-size="19" fill="#31343A">Скільки коштує сайт?</text>
+  <rect x="620" y="610" width="430" height="115" rx="22" fill="#22252D"/><text x="650" y="652" font-family="Arial" font-size="18" fill="#fff">Базовий сайт — від 5 000 грн.</text><text x="650" y="686" font-family="Arial" font-size="18" fill="#fff">Можу уточнити задачу та запропонувати зустріч.</text>
+  <rect x="1140" y="395" width="290" height="180" rx="30" fill="#D8FF8C"/><text x="1180" y="450" font-family="Arial" font-size="20" fill="#404433">Ліди сьогодні</text><text x="1180" y="530" font-family="Arial" font-size="68" font-weight="800" fill="#111216">12</text>
+  <rect x="1140" y="605" width="290" height="180" rx="30" fill="#AFC1FF"/><text x="1180" y="660" font-family="Arial" font-size="20" fill="#30384F">AI-відповіді</text><text x="1180" y="740" font-family="Arial" font-size="68" font-weight="800" fill="#111216">87%</text>
+  <rect x="490" y="820" width="940" height="34" rx="17" fill="#2B2E36"/><rect x="490" y="820" width="620" height="34" rx="17" fill="#D8FF8C"/>
+</svg>

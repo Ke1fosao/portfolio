@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#F3F0E8"/>
+  <circle cx="1060" cy="90" r="210" fill="#D8FF80"/>
+  <circle cx="1040" cy="590" r="250" fill="#AEBEFF"/>
+  <text x="70" y="130" font-family="Arial" font-size="34" font-weight="800" fill="#151513">DK. · FULL-STACK DEVELOPER</text>
+  <text x="70" y="275" font-family="Arial" font-size="82" font-weight="800" fill="#151513">Сайти.</text>
+  <text x="70" y="370" font-family="Arial" font-size="82" font-weight="800" fill="#151513">Системи.</text>
+  <text x="70" y="465" font-family="Arial" font-size="82" font-weight="800" fill="#151513">Автоматизація.</text>
+  <text x="70" y="555" font-family="Arial" font-size="28" fill="#5E5B54">Ковтунович Дмитро · Рівне, Україна</text>
+</svg>

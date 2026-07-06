@@ -1,0 +1,28 @@
+{
+  "name": "dmytro-portfolio-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prebuild": "node scripts/generate-seo.mjs",
+    "postbuild": "node scripts/generate-route-shells.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "axios": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-easy-crop": "^6.1.0",
+    "react-router-dom": "latest"
+  },
+  "devDependencies": {
+    "autoprefixer": "latest",
+    "postcss": "latest",
+    "tailwindcss": "3.4.17",
+    "vite": "latest"
+  }
+}

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1150" role="img" aria-labelledby="title desc">
+  <title id="title">Абстрактний робочий простір розробника</title>
+  <desc id="desc">Темний монітор із кодом, панеллю керування та великими літерами DK на теплому фоні.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cbb9a1"/>
+      <stop offset=".48" stop-color="#8d7768"/>
+      <stop offset="1" stop-color="#332d2a"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#161718"/>
+      <stop offset="1" stop-color="#060707"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#000" flood-opacity=".3"/>
+    </filter>
+  </defs>
+  <rect width="1800" height="1150" fill="url(#bg)"/>
+  <circle cx="1510" cy="90" r="330" fill="#ff806f" opacity=".82"/>
+  <circle cx="230" cy="1040" r="390" fill="#d7ff75" opacity=".48"/>
+  <path d="M0 770C260 640 520 650 770 790s560 150 1030-80v440H0Z" fill="#2d2927" opacity=".78"/>
+  <g opacity=".2" stroke="#fff">
+    <path d="M0 160h1800M0 320h1800M0 480h1800M0 640h1800M0 800h1800M0 960h1800"/>
+    <path d="M200 0v1150M400 0v1150M600 0v1150M800 0v1150M1000 0v1150M1200 0v1150M1400 0v1150M1600 0v1150"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="180" y="180" width="1050" height="650" rx="34" fill="#242526"/>
+    <rect x="205" y="205" width="1000" height="600" rx="20" fill="url(#screen)"/>
+    <rect x="205" y="205" width="1000" height="58" rx="20" fill="#202223"/>
+    <circle cx="244" cy="234" r="8" fill="#ff806f"/>
+    <circle cx="274" cy="234" r="8" fill="#d7ff75"/>
+    <circle cx="304" cy="234" r="8" fill="#8fcaff"/>
+    <text x="350" y="242" font-family="Arial, sans-serif" font-size="20" fill="#8e9497">portfolio / business-system</text>
+    <g font-family="monospace" font-size="25">
+      <text x="255" y="330" fill="#ff806f">const</text><text x="335" y="330" fill="#f3f1ec"> product =</text><text x="500" y="330" fill="#8fcaff"> build</text><text x="570" y="330" fill="#f3f1ec">({</text>
+      <text x="300" y="380" fill="#9fa6aa">design:</text><text x="430" y="380" fill="#d7ff75"> 'clear',</text>
+      <text x="300" y="430" fill="#9fa6aa">backend:</text><text x="445" y="430" fill="#d7ff75"> 'reliable',</text>
+      <text x="300" y="480" fill="#9fa6aa">automation:</text><text x="490" y="480" fill="#d7ff75"> 'smart',</text>
+      <text x="300" y="530" fill="#9fa6aa">result:</text><text x="430" y="530" fill="#d7ff75"> 'growth'</text>
+      <text x="255" y="580" fill="#f3f1ec">})</text>
+      <text x="255" y="680" fill="#8fcaff">launch</text><text x="350" y="680" fill="#f3f1ec">(product)</text>
+    </g>
+    <rect x="520" y="830" width="360" height="36" rx="18" fill="#191a1b"/>
+    <rect x="660" y="830" width="80" height="150" rx="14" fill="#202223"/>
+    <rect x="520" y="960" width="360" height="34" rx="17" fill="#202223"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1270" y="270" width="380" height="520" rx="42" fill="#f4eee5"/>
+    <text x="1315" y="350" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#282624">AI MANAGER</text>
+    <rect x="1315" y="390" width="290" height="70" rx="20" fill="#161718"/>
+    <circle cx="1350" cy="425" r="13" fill="#66d183"/>
+    <text x="1380" y="433" font-family="Arial, sans-serif" font-size="18" fill="#fff">Online · ready</text>
+    <rect x="1315" y="500" width="245" height="78" rx="18" fill="#ded7cf"/>
+    <rect x="1360" y="610" width="245" height="92" rx="18" fill="#ff806f"/>
+    <path d="M1340 745h210" stroke="#282624" stroke-width="10" stroke-linecap="round" opacity=".15"/>
+  </g>
+  <text x="1260" y="1030" font-family="Arial, sans-serif" font-size="250" font-weight="900" letter-spacing="-25" fill="#f4eee5" opacity=".9">DK</text>
+</svg>

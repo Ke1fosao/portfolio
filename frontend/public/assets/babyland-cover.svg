@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" rx="48" fill="#EDE8FF"/>
+  <circle cx="1320" cy="160" r="180" fill="#FFD75D"/>
+  <circle cx="1450" cy="830" r="250" fill="#FF8EB5" opacity=".7"/>
+  <circle cx="170" cy="860" r="260" fill="#8CDBCD" opacity=".9"/>
+  <rect x="115" y="95" width="1370" height="810" rx="38" fill="#FFFDF8" stroke="#24231F" stroke-width="4"/>
+  <rect x="115" y="95" width="1370" height="82" rx="38" fill="#FFFFFF"/>
+  <circle cx="165" cy="136" r="10" fill="#FF766E"/><circle cx="198" cy="136" r="10" fill="#FFD15A"/><circle cx="231" cy="136" r="10" fill="#66CE8E"/>
+  <text x="290" y="147" font-family="Arial" font-size="30" font-weight="700" fill="#222">BABY LAND</text>
+  <text x="165" y="310" font-family="Arial" font-size="72" font-weight="800" fill="#2B2852">Простір щасливого</text>
+  <text x="165" y="390" font-family="Arial" font-size="72" font-weight="800" fill="#2B2852">дитинства у Рівному</text>
+  <text x="165" y="455" font-family="Arial" font-size="28" fill="#69657E">Розвиток, турбота, безпека та сучасний підхід.</text>
+  <rect x="165" y="510" width="260" height="70" rx="35" fill="#6C5CE7"/>
+  <text x="232" y="555" font-family="Arial" font-size="25" font-weight="700" fill="#fff">Подати заявку</text>
+  <rect x="470" y="510" width="220" height="70" rx="35" fill="#F3EFFF" stroke="#6C5CE7" stroke-width="3"/>
+  <text x="527" y="555" font-family="Arial" font-size="25" font-weight="700" fill="#6C5CE7">Про садок</text>
+  <rect x="850" y="250" width="500" height="430" rx="60" fill="#FFE58A"/>
+  <circle cx="1100" cy="435" r="138" fill="#FFB8CC"/>
+  <path d="M980 470c45-105 210-105 255 0v140H980V470Z" fill="#6C5CE7"/>
+  <circle cx="1055" cy="410" r="18" fill="#2B2852"/><circle cx="1145" cy="410" r="18" fill="#2B2852"/>
+  <path d="M1060 480c25 25 55 25 80 0" stroke="#2B2852" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <rect x="165" y="720" width="360" height="120" rx="28" fill="#F7F4FF"/><text x="205" y="770" font-family="Arial" font-size="22" fill="#69657E">Онлайн-заявка</text><text x="205" y="815" font-family="Arial" font-size="36" font-weight="800" fill="#2B2852">24/7</text>
+  <rect x="555" y="720" width="360" height="120" rx="28" fill="#FFF5DD"/><text x="595" y="770" font-family="Arial" font-size="22" fill="#69657E">Розробка</text><text x="595" y="815" font-family="Arial" font-size="36" font-weight="800" fill="#2B2852">2 тижні</text>
+  <rect x="945" y="720" width="360" height="120" rx="28" fill="#E9FBF7"/><text x="985" y="770" font-family="Arial" font-size="22" fill="#69657E">Керування</text><text x="985" y="815" font-family="Arial" font-size="36" font-weight="800" fill="#2B2852">Адмінпанель</text>
+</svg>

@@ -1,0 +1,13 @@
+import { BarChart3, BrainCircuit, CheckCircle2, MessageCircle, Rocket, Sparkles } from 'lucide-react'
+import { fallbackAboutPage } from '../../../data/fallbackData'
+
+export default function AboutAI({ about }) {
+  const icons = [BrainCircuit, CheckCircle2, Rocket, BarChart3, MessageCircle]
+  return <section className="about-ai-section"><div className="about-wide-container">
+    <div className="about-ai-heading"><div className="about-chapter-label" data-about-reveal><span>04</span><span>Що далі</span></div><h2 data-about-reveal>{about.ai_title}</h2><p data-about-reveal>{about.ai_text}</p></div>
+    <div className="about-ai-lab" data-about-reveal><div className="about-ai-orbit about-ai-orbit-one" aria-hidden="true" /><div className="about-ai-orbit about-ai-orbit-two" aria-hidden="true" /><div className="about-ai-data-line about-ai-data-line-a" aria-hidden="true"><i /></div><div className="about-ai-data-line about-ai-data-line-b" aria-hidden="true"><i /></div><div className="about-ai-core"><Sparkles size={28} /><strong>AI</strong><span>практична автоматизація</span></div><div className="about-ai-live"><i /> SYSTEMS ONLINE</div>
+      {(about.ai_items?.length ? about.ai_items : fallbackAboutPage.ai_items).map((item, index) => { const Icon = icons[index % icons.length]; return <article className={`about-ai-card about-ai-card-${index + 1}`} key={`${item.title}-${index}`}><div><Icon size={25} /><span>0{index + 1}</span></div><strong>{item.title}</strong><p>{item.text}</p></article> })}
+      <div className="about-ai-ticker"><span>CONTENT</span><i /><span>MODERATION</span><i /><span>SALES</span><i /><span>ANALYTICS</span><i /><span>TELEGRAM</span></div>
+    </div>
+  </div></section>
+}

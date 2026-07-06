@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#17171A"/>
+  <rect x="70" y="65" width="1460" height="870" rx="34" fill="#F7F5EF"/>
+  <rect x="70" y="65" width="290" height="870" rx="34" fill="#25252B"/>
+  <text x="125" y="145" font-family="Arial" font-size="34" font-weight="800" fill="#fff">BABY LAND</text>
+  <text x="125" y="225" font-family="Arial" font-size="22" fill="#B8B8C2">Огляд</text><text x="125" y="280" font-family="Arial" font-size="22" fill="#B8B8C2">Заявки</text><text x="125" y="335" font-family="Arial" font-size="22" fill="#B8B8C2">Новини</text><text x="125" y="390" font-family="Arial" font-size="22" fill="#B8B8C2">Відгуки</text><text x="125" y="445" font-family="Arial" font-size="22" fill="#B8B8C2">AI-помічник</text>
+  <text x="420" y="145" font-family="Arial" font-size="44" font-weight="800" fill="#232329">Панель керування</text>
+  <rect x="420" y="190" width="300" height="160" rx="26" fill="#EDE8FF"/><text x="455" y="240" font-family="Arial" font-size="22" fill="#6A6678">Нові заявки</text><text x="455" y="310" font-family="Arial" font-size="62" font-weight="800" fill="#2B2852">18</text>
+  <rect x="750" y="190" width="300" height="160" rx="26" fill="#FFF0C2"/><text x="785" y="240" font-family="Arial" font-size="22" fill="#6A6678">Матеріали</text><text x="785" y="310" font-family="Arial" font-size="62" font-weight="800" fill="#2B2852">42</text>
+  <rect x="1080" y="190" width="380" height="160" rx="26" fill="#DFF7F0"/><text x="1115" y="240" font-family="Arial" font-size="22" fill="#6A6678">AI-чернетки</text><text x="1115" y="310" font-family="Arial" font-size="62" font-weight="800" fill="#2B2852">7</text>
+  <rect x="420" y="390" width="1040" height="430" rx="30" fill="#fff"/>
+  <text x="465" y="455" font-family="Arial" font-size="28" font-weight="700" fill="#232329">Останні заявки</text>
+  <g font-family="Arial" font-size="21" fill="#5D5D68">
+    <text x="465" y="530">Ім’я</text><text x="760" y="530">Контакт</text><text x="1090" y="530">Статус</text>
+    <text x="465" y="600">Олена Савчук</text><text x="760" y="600">Telegram</text><text x="1090" y="600">Нова</text>
+    <text x="465" y="670">Ірина Бондар</text><text x="760" y="670">Телефон</text><text x="1090" y="670">У роботі</text>
+    <text x="465" y="740">Марія Коваль</text><text x="760" y="740">Email</text><text x="1090" y="740">Зв’язалися</text>
+  </g>
+  <line x1="455" y1="555" x2="1410" y2="555" stroke="#E6E3DC"/><line x1="455" y1="625" x2="1410" y2="625" stroke="#E6E3DC"/><line x1="455" y1="695" x2="1410" y2="695" stroke="#E6E3DC"/>
+</svg>
