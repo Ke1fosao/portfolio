@@ -8,6 +8,7 @@ from .views import (
     ContentVersionViewSet, TrashViewSet, AnalyticsViewSet, AdminBackupViewSet,
     AdminActionLogViewSet, AdminSecurityViewSet,
     search, editor_preview, dashboard_stats,
+    telegram_mini_app_bootstrap, telegram_mini_app_leads, telegram_mini_app_lead_detail,
 )
 
 router = DefaultRouter()
@@ -38,4 +39,7 @@ urlpatterns = [
     path('search/', search, name='search'),
     path('editor-preview/', editor_preview, name='editor-preview'),
     path('dashboard-stats/', dashboard_stats, name='dashboard-stats'),
+    path('telegram-mini-app/bootstrap/', telegram_mini_app_bootstrap, name='telegram-mini-app-bootstrap'),
+    path('telegram-mini-app/leads/', telegram_mini_app_leads, name='telegram-mini-app-leads'),
+    path('telegram-mini-app/leads/<int:pk>/', telegram_mini_app_lead_detail, name='telegram-mini-app-lead-detail'),
 ]

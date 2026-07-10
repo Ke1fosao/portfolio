@@ -249,6 +249,37 @@ class TelegramBotUser(models.Model):
         return self.display_name
 
 
+class NotificationDelivery(models.Model):
+    CHANNEL_CHOICES = [('telegram', 'Telegram'), ('email', 'Email')]
+    STATUS_CHOICES = [('pending', 'Очікує'), ('sent', 'Надіслано'), ('failed', 'Помилка')]
+
+    lead = models.ForeignKey(
+        ContactLead,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notification_deliveries',
+    )
+    channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
+    event = models.CharField(max_length=60, default='lead_created')
+    recipient = models.CharField(max_length=180, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    message_preview = models.CharField(max_length=280, blank=True)
+    error = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        indexes = [
+            models.Index(fields=['channel', 'status', '-created_at'], name='notify_channel_status_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.get_channel_display()} · {self.get_status_display()} · {self.recipient}'
+
+
 class PageSection(models.Model):
     PAGE_CHOICES = [
         ('home', 'Головна'),

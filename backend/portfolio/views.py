@@ -5,6 +5,7 @@ import hmac
 from io import StringIO
 from datetime import timedelta
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
@@ -23,14 +24,14 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import (
     SiteSettings, Service, Project, Testimonial, PricingPlan, FAQ,
-    BlogPost, ContactLead, TelegramBotUser, PageSection, MediaAsset,
+    BlogPost, ContactLead, TelegramBotUser, NotificationDelivery, PageSection, MediaAsset,
     SeoMetadata, EditorDraft, Certificate, AboutPage, ContentVersion,
     AdminActionLog, AdminBackup, AdminProfile, AdminSecuritySettings,
 )
 from .serializers import (
     SiteSettingsSerializer, ServiceSerializer, ProjectSerializer, TestimonialSerializer,
     PricingPlanSerializer, FAQSerializer, BlogPostSerializer, ContactLeadSerializer,
-    TelegramBotUserSerializer, PageSectionSerializer, MediaAssetSerializer,
+    TelegramBotUserSerializer, NotificationDeliverySerializer, PageSectionSerializer, MediaAssetSerializer,
     SeoMetadataSerializer, EditorDraftSerializer, CertificateSerializer, AboutPageSerializer,
     ContentVersionSerializer, AdminActionLogSerializer, AdminBackupSerializer,
     AdminProfileSerializer, AdminSecuritySettingsSerializer,
@@ -43,8 +44,12 @@ from .services.admin_system import (
     restore_backup_file, restore_deleted, snapshot_instance, soft_delete,
     trash_dependencies, user_has_scope, verify_backup_file, verify_totp,
 )
-from .services.notifications import notify_about_lead
-from .services.notifications import send_telegram_message
+from .services.notifications import (
+    allowed_telegram_chat_ids, notification_delivery_storage_ready, notify_about_lead,
+    record_notification_delivery, send_telegram_message, telegram_api_call,
+    telegram_web_app_is_ready, telegram_web_app_keyboard, telegram_web_app_url,
+)
+from .services.telegram_webapp import TelegramWebAppAuthError, validate_telegram_init_data
 from .throttles import LeadBurstThrottle, LeadHourlyThrottle
 
 
@@ -495,22 +500,436 @@ class TelegramBotUserViewSet(viewsets.ModelViewSet):
     serializer_class = TelegramBotUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def _bot_snapshot(self):
+        calls = {
+            'bot': ('getMe', {}),
+            'webhook': ('getWebhookInfo', {}),
+            'commands': ('getMyCommands', {}),
+        }
+        allowed = sorted(allowed_telegram_chat_ids())
+        if allowed:
+            calls['menu_button'] = ('getChatMenuButton', {'chat_id': allowed[0]})
+            for chat_id in allowed:
+                calls[f'chat:{chat_id}'] = ('getChat', {'chat_id': chat_id})
+
+        def run(item):
+            key, (method, payload) = item
+            ok, result, error = telegram_api_call(method, payload, timeout=6)
+            return key, {'ok': ok, 'result': result, 'error': error}
+
+        results = {}
+        with ThreadPoolExecutor(max_workers=len(calls)) as pool:
+            for key, value in pool.map(run, calls.items()):
+                results[key] = value
+        return results
+
+    def _sync_allowed_users(self, allowed, snapshot=None, force_enable=False):
+        """Keep the private owner visible even when polling has not processed /start yet."""
+        operations = []
+        for chat_id in allowed:
+            cached = (snapshot or {}).get(f'chat:{chat_id}')
+            if cached is None:
+                ok, chat, error = telegram_api_call('getChat', {'chat_id': chat_id}, timeout=6)
+            else:
+                ok, chat, error = cached.get('ok', False), cached.get('result') or {}, cached.get('error', '')
+            user, created = TelegramBotUser.objects.get_or_create(
+                chat_id=chat_id,
+                defaults={
+                    'user_id': str((chat or {}).get('id') or chat_id),
+                    'username': (chat or {}).get('username') or '',
+                    'first_name': (chat or {}).get('first_name') or '',
+                    'last_name': (chat or {}).get('last_name') or '',
+                    'is_blocked': False,
+                    'is_notification_recipient': True,
+                    'last_seen_at': timezone.now() if ok else None,
+                },
+            )
+            if not created:
+                changed = []
+                if ok:
+                    values = {
+                        'user_id': str(chat.get('id') or chat_id),
+                        'username': chat.get('username') or '',
+                        'first_name': chat.get('first_name') or '',
+                        'last_name': chat.get('last_name') or '',
+                    }
+                    if force_enable:
+                        values['is_blocked'] = False
+                        values['is_notification_recipient'] = True
+                    for field, value in values.items():
+                        if getattr(user, field) != value:
+                            setattr(user, field, value)
+                            changed.append(field)
+                    if not user.last_seen_at:
+                        user.last_seen_at = timezone.now()
+                        changed.append('last_seen_at')
+                if changed:
+                    changed.append('updated_at')
+                    user.save(update_fields=changed)
+            operations.append({'chat_id': chat_id, 'ok': ok, 'error': error, 'created': created})
+        return operations
+
     @action(detail=False, methods=['get'])
     def status(self, request):
+        token_ready = bool(getattr(settings, 'TELEGRAM_BOT_TOKEN', '').strip())
+        allowed = sorted(allowed_telegram_chat_ids())
+        snapshot = self._bot_snapshot() if token_ready else {}
+        sync_operations = self._sync_allowed_users(allowed, snapshot=snapshot) if token_ready and allowed else []
+        bot_result = (snapshot.get('bot') or {}).get('result') or {}
+        webhook_result = (snapshot.get('webhook') or {}).get('result') or {}
+        commands_value = ((snapshot.get('commands') or {}).get('result') or {}).get('value') or []
+        menu_result = (snapshot.get('menu_button') or {}).get('result') or {}
+        app_url = telegram_web_app_url()
+        storage_ready = notification_delivery_storage_ready()
+        recent_since = timezone.now() - timedelta(hours=24)
+        if storage_ready:
+            delivery_qs = NotificationDelivery.objects.filter(created_at__gte=recent_since)
+            deliveries_24h = delivery_qs.count()
+            sent_24h = delivery_qs.filter(status='sent').count()
+            failed_24h = delivery_qs.filter(status='failed').count()
+        else:
+            deliveries_24h = sent_24h = failed_24h = 0
+        last_user = TelegramBotUser.objects.exclude(last_seen_at__isnull=True).order_by('-last_seen_at').first()
+
+        issues = []
+        notices = []
+        if not token_ready:
+            issues.append('Додайте TELEGRAM_BOT_TOKEN у backend/.env.')
+        if not allowed:
+            issues.append('Додайте свій Telegram user/chat ID у TELEGRAM_ALLOWED_CHAT_IDS.')
+        if token_ready and snapshot.get('bot') and not snapshot['bot']['ok']:
+            issues.append(snapshot['bot']['error'])
+        if webhook_result.get('url'):
+            issues.append('У бота активний webhook. Локальний long polling одночасно працювати не буде.')
+        if not storage_ready:
+            issues.append('Не застосована міграція журналу сповіщень. Запустіть FIX_TELEGRAM_LOCAL.bat або python manage.py migrate.')
+        if not telegram_web_app_is_ready():
+            notices.append('Mini App вимкнений у локальному режимі. Для звичайного бота домен не потрібен.')
+
         return Response({
+            'has_token': token_ready,
+            'database_ready': storage_ready,
             'users': TelegramBotUser.objects.count(),
             'recipients': TelegramBotUser.objects.filter(is_notification_recipient=True, is_blocked=False).count(),
-            'has_token': bool(os.getenv('TELEGRAM_BOT_TOKEN', '').strip()),
+            'allowed_count': len(allowed),
+            'allowed_chat_ids': allowed,
+            'app_url': app_url,
+            'app_url_https': telegram_web_app_is_ready(),
+            'mini_app_enabled': telegram_web_app_is_ready(),
+            'bot_reachable': bool((snapshot.get('bot') or {}).get('ok')),
+            'bot': {
+                'id': bot_result.get('id'),
+                'username': bot_result.get('username', ''),
+                'first_name': bot_result.get('first_name', ''),
+                'can_join_groups': bot_result.get('can_join_groups'),
+            },
+            'webhook': {
+                'active': bool(webhook_result.get('url')),
+                'url': webhook_result.get('url', ''),
+                'pending_updates': webhook_result.get('pending_update_count', 0),
+                'last_error_message': webhook_result.get('last_error_message', ''),
+            },
+            'commands_count': len(commands_value) if isinstance(commands_value, list) else 0,
+            'menu_button_configured': menu_result.get('type') == 'web_app',
+            'last_activity_at': last_user.last_seen_at if last_user else None,
+            'deliveries_24h': deliveries_24h,
+            'sent_24h': sent_24h,
+            'failed_24h': failed_24h,
+            'issues': [issue for issue in issues if issue],
+            'notices': notices,
+            'user_sync': sync_operations,
         })
+
+    @action(detail=False, methods=['post'])
+    def setup(self, request):
+        allowed = sorted(allowed_telegram_chat_ids())
+        if not getattr(settings, 'TELEGRAM_BOT_TOKEN', '').strip():
+            return Response({'detail': 'Додайте TELEGRAM_BOT_TOKEN у backend/.env.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not allowed:
+            return Response({
+                'detail': 'Додайте свій Telegram user/chat ID у TELEGRAM_ALLOWED_CHAT_IDS у backend/.env.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        commands = [
+            {'command': 'start', 'description': 'Підключити приватного бота'},
+            {'command': 'status', 'description': 'Короткий стан CRM'},
+            {'command': 'new', 'description': 'Нові непрочитані заявки'},
+            {'command': 'today', 'description': 'Заявки за сьогодні'},
+            {'command': 'leads', 'description': 'Останні заявки'},
+            {'command': 'notify_on', 'description': 'Увімкнути сповіщення'},
+            {'command': 'help', 'description': 'Усі команди'},
+        ]
+        operations = []
+        ok, _, error = telegram_api_call('setMyCommands', {'commands': commands})
+        operations.append({'name': 'commands', 'ok': ok, 'error': error, 'required': True})
+
+        sync_operations = self._sync_allowed_users(allowed, force_enable=True)
+        for item in sync_operations:
+            operations.append({
+                'name': f'get_chat:{item["chat_id"]}',
+                'ok': item['ok'],
+                'error': item['error'],
+                'required': False,
+            })
+
+        app_ready = telegram_web_app_is_ready()
+        app_url = telegram_web_app_url()
+        for chat_id in allowed:
+            if app_ready:
+                menu_button = {'type': 'web_app', 'text': 'Відкрити CRM', 'web_app': {'url': app_url}}
+            else:
+                menu_button = {'type': 'commands'}
+            menu_ok, _, menu_error = telegram_api_call('setChatMenuButton', {
+                'chat_id': chat_id,
+                'menu_button': menu_button,
+            })
+            operations.append({'name': f'menu:{chat_id}', 'ok': menu_ok, 'error': menu_error, 'required': app_ready})
+
+            if app_ready:
+                text = '<b>CRM-додаток підключено.</b>\nНатисни кнопку нижче або кнопку меню біля поля введення.'
+                keyboard = telegram_web_app_keyboard()
+            else:
+                text = '<b>✅ Локального Telegram-бота налаштовано.</b>\nСповіщення та команди працюють. Mini App можна підключити пізніше, коли з’явиться HTTPS-домен.'
+                keyboard = None
+            sent, send_error = send_telegram_message(chat_id, text, reply_markup=keyboard)
+            record_notification_delivery(
+                channel='telegram',
+                event='bot_setup',
+                recipient=chat_id,
+                status='sent' if sent else 'failed',
+                error=send_error,
+                message_preview='Telegram-бот налаштовано.',
+                sent_at=timezone.now() if sent else None,
+                metadata={'mini_app': app_ready},
+            )
+            operations.append({'name': f'welcome:{chat_id}', 'ok': sent, 'error': send_error, 'required': True})
+
+        required_operations = [item for item in operations if item.get('required')]
+        success = bool(required_operations) and all(item['ok'] for item in required_operations)
+        return Response({
+            'configured': success,
+            'local_bot_configured': success,
+            'mini_app_configured': app_ready and all(
+                item['ok'] for item in operations if item['name'].startswith('menu:')
+            ),
+            'mode': 'mini_app' if app_ready else 'local',
+            'operations': operations,
+            'app_url': app_url,
+        })
+
+    @action(detail=False, methods=['get'])
+    def activity(self, request):
+        if not notification_delivery_storage_ready():
+            return Response([])
+        queryset = NotificationDelivery.objects.select_related('lead').all()
+        channel = request.query_params.get('channel', '').strip()
+        delivery_status = request.query_params.get('status', '').strip()
+        if channel:
+            queryset = queryset.filter(channel=channel)
+        if delivery_status:
+            queryset = queryset.filter(status=delivery_status)
+        try:
+            limit = min(max(int(request.query_params.get('limit', 40)), 1), 100)
+        except ValueError:
+            limit = 40
+        return Response(NotificationDeliverySerializer(queryset[:limit], many=True).data)
+
+    @action(detail=False, methods=['delete'])
+    def clear_activity(self, request):
+        if not notification_delivery_storage_ready():
+            return Response({'deleted': 0, 'detail': 'Журнал ще не створено. Застосуйте міграції.'})
+        deleted, _ = NotificationDelivery.objects.all().delete()
+        return Response({'deleted': deleted})
+
+    @action(detail=False, methods=['post'])
+    def broadcast_test(self, request):
+        recipients = list(TelegramBotUser.objects.filter(
+            is_notification_recipient=True,
+            is_blocked=False,
+        ).values_list('chat_id', flat=True))
+        allowed = allowed_telegram_chat_ids()
+        if allowed:
+            recipients = [chat_id for chat_id in recipients if chat_id in allowed]
+        if not recipients:
+            recipients = sorted(allowed)
+        recipients = list(dict.fromkeys(recipients))
+        if not recipients:
+            return Response({'sent': 0, 'failed': 0, 'errors': ['Немає дозволеного отримувача.']}, status=status.HTTP_400_BAD_REQUEST)
+
+        sent_count = 0
+        errors = []
+        text = '<b>✅ Тест сповіщень</b>\nTelegram-інтеграція портфоліо працює правильно.'
+        for chat_id in recipients:
+            sent, error = send_telegram_message(chat_id, text, reply_markup=telegram_web_app_keyboard() if telegram_web_app_is_ready() else None)
+            record_notification_delivery(
+                channel='telegram',
+                event='manual_test',
+                recipient=chat_id,
+                status='sent' if sent else 'failed',
+                error=error,
+                message_preview='Тест сповіщень з адмінпанелі.',
+                sent_at=timezone.now() if sent else None,
+            )
+            if sent:
+                sent_count += 1
+            else:
+                errors.append(f'{chat_id}: {error}')
+        return Response({'sent': sent_count, 'failed': len(errors), 'errors': errors})
 
     @action(detail=True, methods=['post'])
     def test_message(self, request, pk=None):
         user = self.get_object()
         ok, error = send_telegram_message(
             user.chat_id,
-            'Тестове сповіщення з адмінпанелі портфоліо. Якщо бачиш це повідомлення, Telegram налаштований правильно.',
+            '<b>✅ Тестове сповіщення</b>\nЯкщо бачиш це повідомлення, Telegram налаштований правильно.',
+            reply_markup=telegram_web_app_keyboard() if telegram_web_app_is_ready() else None,
+        )
+        record_notification_delivery(
+            channel='telegram',
+            event='manual_test',
+            recipient=user.chat_id,
+            status='sent' if ok else 'failed',
+            error=error,
+            message_preview='Тестове сповіщення конкретному користувачу.',
+            sent_at=timezone.now() if ok else None,
         )
         return Response({'sent': ok, 'error': error})
+
+
+def _telegram_mini_app_session(request):
+    init_data = request.headers.get('X-Telegram-Init-Data', '')
+    return validate_telegram_init_data(init_data)
+
+
+def _mini_lead_payload(lead, detail=False):
+    data = {
+        'id': lead.pk,
+        'name': lead.name,
+        'contact_method': lead.contact_method,
+        'contact_method_label': lead.get_contact_method_display(),
+        'contact_value': lead.contact_value,
+        'service': lead.service,
+        'budget': lead.budget,
+        'message': lead.message,
+        'status': lead.status,
+        'status_label': lead.get_status_display(),
+        'is_read': lead.is_read,
+        'created_at': lead.created_at,
+        'updated_at': lead.updated_at,
+    }
+    if detail:
+        data.update({
+            'source': lead.source,
+            'page_url': lead.page_url,
+            'internal_notes': lead.internal_notes,
+            'telegram_notified_at': lead.telegram_notified_at,
+            'email_notified_at': lead.email_notified_at,
+            'notification_errors': lead.notification_errors,
+        })
+    return data
+
+
+def _telegram_auth_error_response(exc):
+    return Response({'detail': str(exc)}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def telegram_mini_app_bootstrap(request):
+    try:
+        session = _telegram_mini_app_session(request)
+    except TelegramWebAppAuthError as exc:
+        return _telegram_auth_error_response(exc)
+
+    leads = ContactLead.objects.filter(deleted_at__isnull=True)
+    today = timezone.localdate()
+    return Response({
+        'user': {
+            'id': session.user_id,
+            'first_name': session.user.get('first_name', ''),
+            'last_name': session.user.get('last_name', ''),
+            'username': session.user.get('username', ''),
+            'photo_url': session.user.get('photo_url', ''),
+        },
+        'stats': {
+            'total': leads.count(),
+            'today': leads.filter(created_at__date=today).count(),
+            'unread': leads.filter(is_read=False).exclude(status='spam').count(),
+            'new': leads.filter(status='new').count(),
+            'in_progress': leads.filter(status='in_progress').count(),
+            'completed': leads.filter(status='completed').count(),
+        },
+        'recent': [_mini_lead_payload(lead) for lead in leads[:8]],
+        'status_options': [{'value': value, 'label': label} for value, label in ContactLead.STATUS_CHOICES],
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def telegram_mini_app_leads(request):
+    try:
+        _telegram_mini_app_session(request)
+    except TelegramWebAppAuthError as exc:
+        return _telegram_auth_error_response(exc)
+
+    queryset = ContactLead.objects.filter(deleted_at__isnull=True)
+    query = request.query_params.get('q', '').strip()
+    lead_status = request.query_params.get('status', '').strip()
+    unread = request.query_params.get('unread', '').lower()
+    if query:
+        queryset = queryset.filter(
+            Q(name__icontains=query) | Q(contact_value__icontains=query) |
+            Q(message__icontains=query) | Q(service__icontains=query)
+        )
+    if lead_status:
+        queryset = queryset.filter(status=lead_status)
+    if unread in ['1', 'true', 'yes']:
+        queryset = queryset.filter(is_read=False)
+    try:
+        limit = min(max(int(request.query_params.get('limit', 40)), 1), 100)
+    except ValueError:
+        limit = 40
+    return Response([_mini_lead_payload(lead) for lead in queryset[:limit]])
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([permissions.AllowAny])
+def telegram_mini_app_lead_detail(request, pk):
+    try:
+        _telegram_mini_app_session(request)
+    except TelegramWebAppAuthError as exc:
+        return _telegram_auth_error_response(exc)
+
+    try:
+        lead = ContactLead.objects.get(pk=pk, deleted_at__isnull=True)
+    except ContactLead.DoesNotExist:
+        return Response({'detail': 'Заявку не знайдено.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PATCH':
+        update_fields = []
+        requested_status = request.data.get('status')
+        allowed_statuses = {value for value, _ in ContactLead.STATUS_CHOICES}
+        if requested_status is not None:
+            if requested_status not in allowed_statuses:
+                return Response({'detail': 'Невідомий статус.'}, status=status.HTTP_400_BAD_REQUEST)
+            lead.status = requested_status
+            update_fields.append('status')
+            if requested_status == 'in_progress' and not lead.first_response_at:
+                lead.first_response_at = timezone.now()
+                update_fields.append('first_response_at')
+        if 'is_read' in request.data:
+            lead.is_read = bool(request.data.get('is_read'))
+            update_fields.append('is_read')
+            if lead.is_read and not lead.viewed_at:
+                lead.viewed_at = timezone.now()
+                update_fields.append('viewed_at')
+        if 'internal_notes' in request.data:
+            lead.internal_notes = str(request.data.get('internal_notes') or '')[:5000]
+            update_fields.append('internal_notes')
+        if update_fields:
+            update_fields.append('updated_at')
+            lead.save(update_fields=list(dict.fromkeys(update_fields)))
+    return Response(_mini_lead_payload(lead, detail=True))
 
 
 class PageSectionViewSet(VersionedModelMixin, viewsets.ModelViewSet):

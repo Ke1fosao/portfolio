@@ -331,3 +331,53 @@
   .mobile-menu-primary { grid-template-columns: 1fr; }
   .mobile-menu-primary a { min-height: 86px; }
 }
+
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 4px 6px;
+  border: 1px solid rgba(21,21,19,.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 8px 24px rgba(20,20,18,.06);
+  backdrop-filter: blur(14px);
+}
+.language-switcher button {
+  display: grid;
+  min-width: 34px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(21,21,19,.5);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease, transform .2s ease;
+}
+.language-switcher button:hover { color: #151513; transform: translateY(-1px); }
+.language-switcher button.is-active { background: #151513; color: #fff; }
+.language-switcher > span { width: 1px; height: 13px; background: rgba(21,21,19,.12); }
+.language-switcher.is-compact { min-height: 34px; padding: 3px 5px; gap: 4px; }
+.language-switcher.is-compact button { min-width: 29px; height: 26px; font-size: 10px; }
+.mobile-menu-language { display: none; }
+
+@media (max-width: 980px) {
+  .mobile-menu-language {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: 14px;
+    border-color: rgba(255,255,255,.16);
+    background: rgba(255,255,255,.08);
+    box-shadow: none;
+  }
+  .mobile-menu-language button { color: rgba(255,255,255,.6); }
+  .mobile-menu-language button:hover { color: #fff; }
+  .mobile-menu-language button.is-active { background: #d8ff80; color: #151513; }
+  .mobile-menu-language > span { background: rgba(255,255,255,.16); }
+}

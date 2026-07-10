@@ -80,4 +80,14 @@ for (const route of allRoutes) {
   await mkdir(directory, { recursive: true })
   await writeFile(path.join(directory, 'index.html'), html, 'utf8')
 }
-console.log(`SEO: generated ${allRoutes.length} route HTML shells with structured data.`)
+// Telegram opens the Mini App URL directly. Generate a private route shell so static hosts
+// can serve /telegram-app without requiring a custom SPA rewrite rule.
+const telegramDirectory = path.join(dist, 'telegram-app')
+await mkdir(telegramDirectory, { recursive: true })
+let telegramHtml = source
+telegramHtml = telegramHtml.replace(/<title>.*?<\/title>/s, '<title>Portfolio CRM — Telegram Mini App</title>')
+telegramHtml = replaceOrInsert(telegramHtml, /<meta\s+name="description"[^>]*>/i, '<meta name="description" content="Приватний Telegram CRM-додаток для керування заявками.">')
+telegramHtml = replaceOrInsert(telegramHtml, /<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="noindex,nofollow,noarchive">')
+await writeFile(path.join(telegramDirectory, 'index.html'), telegramHtml, 'utf8')
+
+console.log(`SEO: generated ${allRoutes.length} public route shells and the private Telegram Mini App shell.`)

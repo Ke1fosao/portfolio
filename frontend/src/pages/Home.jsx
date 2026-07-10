@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import api, { unwrap } from '../lib/api'
 import { fallbackFaqs, fallbackPricing, fallbackProjects, fallbackServices, fallbackSettings } from '../data/fallbackData'
+import { useLanguage } from '../i18n/LanguageContext'
+import { localizeFaqs, localizePricing, localizeProjects, localizeServices, localizeSettings } from '../i18n/localizedData'
 import HomeHero from './home-v4/HomeHero'
 import HomeBusinessJourney from './home-v4/HomeBusinessJourney'
 import HomeServices from './home-v4/HomeServices'
@@ -11,6 +13,7 @@ import HomeFaq from './home-v4/HomeFaq'
 import HomeFinalCta from './home-v4/HomeFinalCta'
 
 export default function Home() {
+  const { language } = useLanguage()
   const [settings, setSettings] = useState(fallbackSettings)
   const [services, setServices] = useState(fallbackServices)
   const [projects, setProjects] = useState(fallbackProjects)
@@ -60,18 +63,23 @@ export default function Home() {
     }
   }, [])
 
-  const telegram = settings.socials?.telegram || `https://t.me/${String(settings.telegram || '@Ke1fosao').replace('@', '')}`
+  const localizedSettings = localizeSettings(settings, language)
+  const localizedServices = localizeServices(services, language)
+  const localizedProjects = localizeProjects(projects, language)
+  const localizedPricing = localizePricing(pricing, language)
+  const localizedFaqs = localizeFaqs(faqs, language)
+  const telegram = localizedSettings.socials?.telegram || `https://t.me/${String(localizedSettings.telegram || '@Ke1fosao').replace('@', '')}`
 
   return (
     <div className="sales3-home" ref={rootRef}>
-      <HomeHero settings={settings} telegram={telegram} />
+      <HomeHero settings={localizedSettings} telegram={telegram} />
       <HomeBusinessJourney />
-      <HomeServices services={services} />
-      <HomeCases projects={projects} telegram={telegram} />
+      <HomeServices services={localizedServices} />
+      <HomeCases projects={localizedProjects} telegram={telegram} />
       <HomeProcess telegram={telegram} />
-      <HomePricing pricing={pricing} />
-      <HomeFaq faqs={faqs} />
-      <HomeFinalCta settings={settings} telegram={telegram} />
+      <HomePricing pricing={localizedPricing} />
+      <HomeFaq faqs={localizedFaqs} />
+      <HomeFinalCta settings={localizedSettings} telegram={telegram} />
     </div>
   )
 }

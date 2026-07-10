@@ -1,3 +1,2 @@
-export default function NotFound() {
-  return <section className="page-hero"><div className="container-shell"><div className="eyebrow">404</div><h1 className="display-lg" style={{ margin: '20px 0' }}>Такої сторінки немає.</h1><a className="btn btn-dark" href="/">Повернутися на головну</a></div></section>
-}
+import { useLanguage } from '../i18n/LanguageContext'
+export default function NotFound() { const { isEnglish } = useLanguage(); return <section className="page-hero"><div className="container-shell"><div className="eyebrow">404</div><h1 className="display-lg" style={{ margin:'20px 0' }}>{isEnglish ? 'This page does not exist.' : 'Такої сторінки немає.'}</h1><a className="btn btn-dark" href="/">{isEnglish ? 'Return to homepage' : 'Повернутися на головну'}</a></div></section> }

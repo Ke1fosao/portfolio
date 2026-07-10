@@ -1,147 +1,46 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  Mail,
-  MessageCircle,
-  Phone,
-  Send,
-} from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, Mail, MessageCircle, Phone, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import api, { unwrap } from '../lib/api'
 import { fallbackSettings } from '../data/fallbackData'
+import { useLanguage } from '../i18n/LanguageContext'
+import { localizeSettings } from '../i18n/localizedData'
 import '../styles/secondary-base.css'
 import '../styles/contact.css'
 import '../styles/secondary-responsive.css'
 
-const methodMeta = {
-  telegram: { label: 'Telegram', Icon: MessageCircle, hint: '@username', description: 'Найшвидший варіант для переписки' },
-  phone: { label: 'Телефон', Icon: Phone, hint: '+380…', description: 'Для дзвінка або повідомлення' },
-  email: { label: 'Email', Icon: Mail, hint: 'name@email.com', description: 'Зручно для детального брифу' },
+const COPY = {
+  uk: {
+    methods: { telegram:{ label:'Telegram', hint:'@username', description:'Найшвидший варіант для переписки' }, phone:{ label:'Телефон', hint:'+380…', description:'Для дзвінка або повідомлення' }, email:{ label:'Email', hint:'name@email.com', description:'Зручно для детального брифу' } },
+    direct:'Прямий зв’язок', choose:'Оберіть зручний канал.', intro:'Для швидкої розмови найкраще підійде Telegram. Детальне технічне завдання можна надіслати поштою.', after:'Після першого повідомлення уточню задачу, строки та потрібний функціонал.', brief:'Короткий бриф', formTitle:'Залиште контакт — я повернуся з наступним кроком.', website:'Ваш сайт', name:'Ваше ім’я', namePlaceholder:'Як до вас звертатися?', reply:'Куди краще відповісти?', your:'Ваш', task:'Коротко про задачу', taskPlaceholder:'Що потрібно створити, покращити або автоматизувати? Який у вас бізнес і бажаний результат?', sending:'Надсилання…', send:'Надіслати заявку', consentA:'Надсилаючи форму, ви погоджуєтеся з', consentLink:'обробкою контактних даних', consentB:'для відповіді на звернення.', success:'Дякую! Заявку прийнято, збережено в системі та передано мені для відповіді.', fail:'Не вдалося надіслати форму. Напишіть мені напряму в Telegram або на email.', next:'Що буде далі', noLong:'Без довгої анкети на старті.', steps:[['01','Уточню задачу','Поставлю кілька конкретних запитань про бізнес, ціль і функціонал.'],['02','Запропоную формат','Поясню, що варто робити зараз, а що можна залишити на наступний етап.'],['03','Оцінимо проєкт','Зафіксуємо орієнтовні строки, бюджет та порядок роботи.']], ready:'Вже маєте готовий опис або файл із вимогами?', emailAction:'Надіслати на email', phoneLabel:'Телефон',
+  },
+  en: {
+    methods: { telegram:{ label:'Telegram', hint:'@username', description:'The fastest option for messages' }, phone:{ label:'Phone', hint:'+380…', description:'For a call or a message' }, email:{ label:'Email', hint:'name@email.com', description:'Convenient for a detailed brief' } },
+    direct:'Direct contact', choose:'Choose a convenient channel.', intro:'Telegram is the best option for a quick conversation. A detailed technical brief can be sent by email.', after:'After the first message I will clarify the task, timeline, and required functionality.', brief:'Short brief', formTitle:'Leave your contact details and I will return with the next step.', website:'Your website', name:'Your name', namePlaceholder:'How should I address you?', reply:'Where should I reply?', your:'Your', task:'Briefly describe the task', taskPlaceholder:'What needs to be created, improved, or automated? What is your business and desired result?', sending:'Sending…', send:'Send request', consentA:'By submitting the form, you agree to the', consentLink:'processing of contact data', consentB:'to receive a response.', success:'Thank you! Your request has been received, saved in the system, and sent to me for a response.', fail:'The form could not be sent. Please contact me directly through Telegram or email.', next:'What happens next', noLong:'No long questionnaire at the beginning.', steps:[['01','I clarify the task','I will ask several specific questions about the business, goal, and functionality.'],['02','I suggest a format','I will explain what is worth building now and what can be left for the next stage.'],['03','We estimate the project','We will define an approximate timeline, budget, and workflow.']], ready:'Already have a prepared description or requirements file?', emailAction:'Send by email', phoneLabel:'Phone',
+  },
 }
 
 export default function Contact() {
-  const [settings, setSettings] = useState(fallbackSettings)
+  const { language } = useLanguage()
+  const c = COPY[language]
+  const [rawSettings, setRawSettings] = useState(fallbackSettings)
+  const settings = useMemo(() => localizeSettings(rawSettings, language), [rawSettings, language])
+  const methodMeta = useMemo(() => ({ telegram:{ ...c.methods.telegram, Icon:MessageCircle }, phone:{ ...c.methods.phone, Icon:Phone }, email:{ ...c.methods.email, Icon:Mail } }), [c])
   const formStartedAt = useRef(Date.now())
-  const [form, setForm] = useState({ name: '', contact_method: 'telegram', contact_value: '', message: '', website: '' })
-  const [state, setState] = useState({ loading: false, message: '', error: false })
-
-  useEffect(() => {
-    api.get('/settings/').then((response) => {
-      const data = unwrap(response)
-      if (data?.full_name) setSettings(data)
-    }).catch(() => {})
-  }, [])
-
-  const update = (key, value) => setForm((previous) => ({ ...previous, [key]: value }))
-  const selectedMethod = useMemo(() => methodMeta[form.contact_method] || methodMeta.telegram, [form.contact_method])
-
-  const submit = async (event) => {
-    event.preventDefault()
-    setState({ loading: true, message: '', error: false })
-    try {
-      const payload = { ...form, website: form.website || '', form_elapsed_ms: Date.now() - formStartedAt.current }
-      await api.post('/leads/', payload)
-      setState({ loading: false, message: 'Дякую! Заявку прийнято, збережено в системі та передано мені для відповіді.', error: false })
-      setForm({ name: '', contact_method: 'telegram', contact_value: '', message: '', website: '' })
-      formStartedAt.current = Date.now()
-    } catch (error) {
-      const data = error.response?.data
-      const firstError = data?.detail || data?.contact_value?.[0] || data?.name?.[0] || data?.message?.[0]
-      setState({ loading: false, message: firstError || 'Не вдалося надіслати форму. Напишіть мені напряму в Telegram або на email.', error: true })
-    }
-  }
-
-  const telegram = `https://t.me/${String(settings.telegram || '').replace('@', '')}`
-  const phoneHref = `tel:${String(settings.phone || '').replace(/\s/g, '')}`
+  const [form, setForm] = useState({ name:'', contact_method:'telegram', contact_value:'', message:'', website:'' })
+  const [state, setState] = useState({ loading:false, message:'', error:false })
+  useEffect(() => { api.get('/settings/').then((response) => { const data = unwrap(response); if (data?.full_name) setRawSettings(data) }).catch(() => {}) }, [])
+  useEffect(() => { setState({ loading:false, message:'', error:false }) }, [language])
+  const update = (key,value) => setForm((previous) => ({ ...previous, [key]:value }))
+  const selectedMethod = useMemo(() => methodMeta[form.contact_method] || methodMeta.telegram, [form.contact_method, methodMeta])
+  const submit = async (event) => { event.preventDefault(); setState({ loading:true, message:'', error:false }); try { await api.post('/leads/', { ...form, website:form.website || '', form_elapsed_ms:Date.now() - formStartedAt.current }); setState({ loading:false, message:c.success, error:false }); setForm({ name:'', contact_method:'telegram', contact_value:'', message:'', website:'' }); formStartedAt.current = Date.now() } catch (error) { const data = error.response?.data; const firstError = language === 'uk' && (data?.detail || data?.contact_value?.[0] || data?.name?.[0] || data?.message?.[0]); setState({ loading:false, message:firstError || c.fail, error:true }) } }
+  const telegram = `https://t.me/${String(settings.telegram || '').replace('@','')}`
+  const phoneHref = `tel:${String(settings.phone || '').replace(/\s/g,'')}`
   const emailHref = `mailto:${settings.email}`
-
-  return (
-    <div className="contact-page modern-page">
-      <section className="modern-section contact-main-section direct-start-section">
-        <div className="container-shell contact-modern-grid">
-          <aside className="contact-direct-panel">
-            <span className="contact-section-label">Прямий зв’язок</span>
-            <h1>Оберіть зручний канал.</h1>
-            <p>Для швидкої розмови найкраще підійде Telegram. Детальне технічне завдання можна надіслати поштою.</p>
-            <div className="contact-channel-list">
-              <a href={telegram} target="_blank" rel="noreferrer"><i><MessageCircle size={20} /></i><span><small>Telegram</small><strong>{settings.telegram}</strong></span><ArrowUpRight size={18} /></a>
-              <a href={phoneHref}><i><Phone size={20} /></i><span><small>Телефон</small><strong>{settings.phone}</strong></span><ArrowUpRight size={18} /></a>
-              <a href={emailHref}><i><Mail size={20} /></i><span><small>Email</small><strong>{settings.email}</strong></span><ArrowUpRight size={18} /></a>
-            </div>
-            <div className="contact-mini-note"><Check size={16} /><span>Після першого повідомлення уточню задачу, строки та потрібний функціонал.</span></div>
-          </aside>
-
-          <div className="contact-form-card">
-            <div className="contact-form-heading">
-              <span>Короткий бриф</span>
-              <h2>Залиште контакт — я повернуся з наступним кроком.</h2>
-            </div>
-
-            <form className="contact-modern-form" onSubmit={submit} noValidate>
-              <div className="contact-honeypot" aria-hidden="true"><label htmlFor="contact-website">Ваш сайт</label><input id="contact-website" tabIndex="-1" autoComplete="off" value={form.website} onChange={(event) => update('website', event.target.value)} /></div>
-              <div className="field modern-field">
-                <label htmlFor="contact-name">Ваше ім’я</label>
-                <input id="contact-name" required value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="Як до вас звертатися?" autoComplete="name" minLength={2} maxLength={80} />
-              </div>
-
-              <fieldset className="contact-method-fieldset">
-                <legend>Куди краще відповісти?</legend>
-                <div className="contact-method-grid">
-                  {Object.entries(methodMeta).map(([value, meta]) => {
-                    const Icon = meta.Icon
-                    const isActive = form.contact_method === value
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        className={isActive ? 'is-active' : ''}
-                        onClick={() => update('contact_method', value)}
-                        aria-pressed={isActive}
-                      >
-                        <i><Icon size={20} /></i>
-                        <span><strong>{meta.label}</strong><small>{meta.description}</small></span>
-                        <b>{isActive && <Check size={15} />}</b>
-                      </button>
-                    )
-                  })}
-                </div>
-              </fieldset>
-
-              <div className="field modern-field contact-value-field" key={form.contact_method}>
-                <label htmlFor="contact-value">Ваш {selectedMethod.label}</label>
-                <div><selectedMethod.Icon size={18} /><input id="contact-value" required value={form.contact_value} onChange={(event) => update('contact_value', event.target.value)} placeholder={selectedMethod.hint} autoComplete={form.contact_method === 'email' ? 'email' : form.contact_method === 'phone' ? 'tel' : 'off'} inputMode={form.contact_method === 'email' ? 'email' : form.contact_method === 'phone' ? 'tel' : 'text'} /></div>
-              </div>
-
-              <div className="field modern-field">
-                <label htmlFor="contact-message">Коротко про задачу</label>
-                <textarea id="contact-message" value={form.message} onChange={(event) => update('message', event.target.value)} placeholder="Що потрібно створити, покращити або автоматизувати? Який у вас бізнес і бажаний результат?" rows={6} maxLength={3000} />
-              </div>
-
-              <div className="contact-form-footer">
-                <button className="modern-submit" disabled={state.loading}>{state.loading ? 'Надсилання…' : <>Надіслати заявку <Send size={18} /></>}</button>
-                <p>Надсилаючи форму, ви погоджуєтеся з <Link to="/privacy">обробкою контактних даних</Link> для відповіді на звернення.</p>
-              </div>
-              {state.message && <div className={`form-message contact-state-message ${state.error ? 'form-error' : ''}`}>{state.message}</div>}
-            </form>
-          </div>
-        </div>
-      </section>
-
-      <section className="modern-section contact-next-section">
-        <div className="container-shell">
-          <div className="contact-next-grid">
-            <div><span>Що буде далі</span><h2>Без довгої анкети на старті.</h2></div>
-            {[
-              ['01', 'Уточню задачу', 'Поставлю кілька конкретних запитань про бізнес, ціль і функціонал.'],
-              ['02', 'Запропоную формат', 'Поясню, що варто робити зараз, а що можна залишити на наступний етап.'],
-              ['03', 'Оцінимо проєкт', 'Зафіксуємо орієнтовні строки, бюджет та порядок роботи.'],
-            ].map(([number, title, text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}
-          </div>
-          <div className="contact-bottom-action"><p>Вже маєте готовий опис або файл із вимогами?</p><a href={emailHref}>Надіслати на email <ArrowRight size={17} /></a></div>
-        </div>
-      </section>
-    </div>
-  )
+  return <div className="contact-page modern-page"><section className="modern-section contact-main-section direct-start-section"><div className="container-shell contact-modern-grid"><aside className="contact-direct-panel"><span className="contact-section-label">{c.direct}</span><h1>{c.choose}</h1><p>{c.intro}</p><div className="contact-channel-list"><a href={telegram} target="_blank" rel="noreferrer"><i><MessageCircle size={20} /></i><span><small>Telegram</small><strong>{settings.telegram}</strong></span><ArrowUpRight size={18} /></a><a href={phoneHref}><i><Phone size={20} /></i><span><small>{c.phoneLabel}</small><strong>{settings.phone}</strong></span><ArrowUpRight size={18} /></a><a href={emailHref}><i><Mail size={20} /></i><span><small>Email</small><strong>{settings.email}</strong></span><ArrowUpRight size={18} /></a></div><div className="contact-mini-note"><Check size={16} /><span>{c.after}</span></div></aside>
+    <div className="contact-form-card"><div className="contact-form-heading"><span>{c.brief}</span><h2>{c.formTitle}</h2></div><form className="contact-modern-form" onSubmit={submit} noValidate><div className="contact-honeypot" aria-hidden="true"><label htmlFor="contact-website">{c.website}</label><input id="contact-website" tabIndex="-1" autoComplete="off" value={form.website} onChange={(event) => update('website',event.target.value)} /></div><div className="field modern-field"><label htmlFor="contact-name">{c.name}</label><input id="contact-name" required value={form.name} onChange={(event) => update('name',event.target.value)} placeholder={c.namePlaceholder} autoComplete="name" minLength={2} maxLength={80} /></div>
+      <fieldset className="contact-method-fieldset"><legend>{c.reply}</legend><div className="contact-method-grid">{Object.entries(methodMeta).map(([value,meta]) => { const Icon = meta.Icon; const active = form.contact_method === value; return <button key={value} type="button" className={active ? 'is-active' : ''} onClick={() => update('contact_method',value)} aria-pressed={active}><i><Icon size={20} /></i><span><strong>{meta.label}</strong><small>{meta.description}</small></span><b>{active && <Check size={15} />}</b></button> })}</div></fieldset>
+      <div className="field modern-field contact-value-field" key={form.contact_method}><label htmlFor="contact-value">{c.your} {selectedMethod.label}</label><div><selectedMethod.Icon size={18} /><input id="contact-value" required value={form.contact_value} onChange={(event) => update('contact_value',event.target.value)} placeholder={selectedMethod.hint} autoComplete={form.contact_method === 'email' ? 'email' : form.contact_method === 'phone' ? 'tel' : 'off'} inputMode={form.contact_method === 'email' ? 'email' : form.contact_method === 'phone' ? 'tel' : 'text'} /></div></div>
+      <div className="field modern-field"><label htmlFor="contact-message">{c.task}</label><textarea id="contact-message" value={form.message} onChange={(event) => update('message',event.target.value)} placeholder={c.taskPlaceholder} rows={6} maxLength={3000} /></div><div className="contact-form-footer"><button className="modern-submit" disabled={state.loading}>{state.loading ? c.sending : <>{c.send} <Send size={18} /></>}</button><p>{c.consentA} <Link to="/privacy">{c.consentLink}</Link> {c.consentB}</p></div>{state.message && <div className={`form-message contact-state-message ${state.error ? 'form-error' : ''}`}>{state.message}</div>}</form></div>
+  </div></section><section className="modern-section contact-next-section"><div className="container-shell"><div className="contact-next-grid"><div><span>{c.next}</span><h2>{c.noLong}</h2></div>{c.steps.map(([number,title,text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div><div className="contact-bottom-action"><p>{c.ready}</p><a href={emailHref}>{c.emailAction} <ArrowRight size={17} /></a></div></div></section></div>
 }

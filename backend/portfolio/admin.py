@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     SiteSettings, Service, Project, Testimonial, PricingPlan, FAQ, BlogPost,
-    ContactLead, TelegramBotUser, PageSection, MediaAsset, SeoMetadata,
+    ContactLead, TelegramBotUser, NotificationDelivery, PageSection, MediaAsset, SeoMetadata,
     EditorDraft, Certificate, AboutPage, AdminProfile, ContentVersion,
     AdminActionLog, AdminBackup, AdminSecuritySettings,
 )
@@ -36,6 +36,14 @@ class TelegramBotUserAdmin(admin.ModelAdmin):
     search_fields = ('chat_id', 'user_id', 'username', 'first_name', 'last_name')
     list_editable = ('is_notification_recipient', 'is_blocked')
     readonly_fields = ('created_at', 'updated_at', 'last_seen_at')
+
+
+@admin.register(NotificationDelivery)
+class NotificationDeliveryAdmin(admin.ModelAdmin):
+    list_display = ('channel', 'event', 'recipient', 'status', 'lead', 'sent_at', 'created_at')
+    list_filter = ('channel', 'status', 'event', 'created_at')
+    search_fields = ('recipient', 'message_preview', 'error', 'lead__name')
+    readonly_fields = ('created_at', 'sent_at')
 
 
 for model in [SiteSettings, Service, Project, Testimonial, PricingPlan, FAQ, BlogPost, Certificate, AboutPage]:

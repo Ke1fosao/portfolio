@@ -6,13 +6,17 @@ cd /d "%~dp0"
 if not exist backend\.env copy backend\.env.example backend\.env > nul
 
 echo =====================================================
-echo Налаштування Telegram та email-сповіщень
-ECHO =====================================================
+echo Telegram, Mini App та email-сповіщення
+echo =====================================================
 echo.
-echo 1. Перевипусти токен у @BotFather.
-echo 2. Встав новий токен і TELEGRAM_CHAT_ID у backend\.env.
-echo 3. Додай SMTP email та пароль застосунку.
-echo 4. Збережи файл і перезапусти backend.
+echo У backend\.env перевір:
+echo 1. TELEGRAM_BOT_TOKEN - новий токен від @BotFather.
+echo 2. TELEGRAM_ALLOWED_CHAT_IDS - тільки твій Telegram ID.
+echo 3. TELEGRAM_WEBAPP_URL - публічна HTTPS-адреса /telegram-app.
+echo 4. SMTP-параметри email, якщо потрібні листи.
+echo.
+echo Після публікації HTTPS запусти configure_telegram_app.bat.
+echo Для локального бота достатньо start_all.bat.
 echo.
 start "" notepad backend\.env
 pause

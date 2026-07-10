@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
+import { useLanguage } from '../i18n/LanguageContext'
 
-const SITE_NAME = import.meta.env.VITE_SITE_NAME || 'Ковтунович Дмитро — Full-stack developer'
+const CONFIGURED_SITE_NAME = import.meta.env.VITE_SITE_NAME || 'Ковтунович Дмитро — Full-stack developer'
+const ENGLISH_SITE_NAME = 'Dmytro Kovtunovych — Full-stack developer'
 const configuredSiteUrl = (import.meta.env.VITE_SITE_URL || '').replace(/\/$/, '')
 
 function absoluteUrl(value, siteUrl) {
@@ -41,21 +43,27 @@ export default function SEO({
   follow = true,
   schema = [],
 }) {
+  const { isEnglish } = useLanguage()
+
   useEffect(() => {
     const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
     const siteUrl = configuredSiteUrl || runtimeOrigin
     const canonicalUrl = absoluteUrl(canonical || path, siteUrl)
     const ogImage = absoluteUrl(image, siteUrl)
-    const fullTitle = title?.includes('Ковтунович') ? title : `${title} — Ковтунович Дмитро`
-    const resolvedOgTitle = ogTitle || fullTitle || SITE_NAME
+    const authorName = isEnglish ? 'Dmytro Kovtunovych' : 'Ковтунович Дмитро'
+    const siteName = isEnglish ? ENGLISH_SITE_NAME : CONFIGURED_SITE_NAME
+    const alreadyBranded = title?.includes('Ковтунович') || title?.includes('Kovtunovych')
+    const fullTitle = title ? (alreadyBranded ? title : `${title} — ${authorName}`) : siteName
+    const resolvedOgTitle = ogTitle || fullTitle || siteName
     const resolvedOgDescription = ogDescription || description
 
-    document.title = fullTitle || SITE_NAME
+    document.title = fullTitle || siteName
     upsertMeta('meta[name="description"]', { name: 'description', content: description })
     upsertMeta('meta[name="robots"]', { name: 'robots', content: `${noindex ? 'noindex' : 'index'},${follow ? 'follow' : 'nofollow'},max-image-preview:large` })
     upsertMeta('meta[property="og:type"]', { property: 'og:type', content: type })
-    upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: SITE_NAME })
-    upsertMeta('meta[property="og:locale"]', { property: 'og:locale', content: 'uk_UA' })
+    upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: siteName })
+    upsertMeta('meta[property="og:locale"]', { property: 'og:locale', content: isEnglish ? 'en_US' : 'uk_UA' })
+    upsertMeta('meta[property="og:locale:alternate"]', { property: 'og:locale:alternate', content: isEnglish ? 'uk_UA' : 'en_US' })
     upsertMeta('meta[property="og:title"]', { property: 'og:title', content: resolvedOgTitle })
     upsertMeta('meta[property="og:description"]', { property: 'og:description', content: resolvedOgDescription })
     upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
@@ -81,7 +89,7 @@ export default function SEO({
     return () => {
       document.querySelectorAll('script[data-portfolio-schema]').forEach((node) => node.remove())
     }
-  }, [title, description, path, canonical, image, ogTitle, ogDescription, type, noindex, follow, schema])
+  }, [title, description, path, canonical, image, ogTitle, ogDescription, type, noindex, follow, schema, isEnglish])
 
   return null
 }
@@ -102,16 +110,20 @@ export function breadcrumbSchema(items = []) {
 
 export function personSchema(settings = {}) {
   const origin = configuredSiteUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+  const isEnglish = /[A-Za-z]/.test(settings.full_name || '') && !/[А-Яа-яІіЇїЄєҐґ]/.test(settings.full_name || '')
+  const city = settings.city ? String(settings.city).split(',')[0].trim() : (isEnglish ? 'Rivne' : 'Рівне')
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    name: settings.full_name || 'Ковтунович Дмитро Валерійович',
+    name: settings.full_name || (isEnglish ? 'Dmytro Kovtunovych' : 'Ковтунович Дмитро Валерійович'),
     jobTitle: settings.role || 'Full-stack developer',
     url: origin,
     email: settings.email ? `mailto:${settings.email}` : undefined,
     telephone: settings.phone || undefined,
-    address: { '@type': 'PostalAddress', addressLocality: 'Рівне', addressCountry: 'UA' },
+    address: { '@type': 'PostalAddress', addressLocality: city, addressCountry: 'UA' },
     sameAs: [settings.github, settings.linkedin, settings.instagram, settings.facebook].filter(Boolean),
-    knowsAbout: ['Django', 'React', 'Python', 'веброзробка', 'AI-автоматизація'],
+    knowsAbout: isEnglish
+      ? ['Django', 'React', 'Python', 'web development', 'AI automation']
+      : ['Django', 'React', 'Python', 'веброзробка', 'AI-автоматизація'],
   }
 }

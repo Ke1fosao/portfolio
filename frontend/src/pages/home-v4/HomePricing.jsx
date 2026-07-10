@@ -1,28 +1,8 @@
 import { Check, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-
+import { useLanguage } from '../../i18n/LanguageContext'
 export default function HomePricing({ pricing }) {
-  return (
-    <section className="sales3-pricing" id="pricing">
-      <div className="sales3-shell">
-        <div className="sales3-section-head" data-sales-reveal>
-          <span className="sales3-section-index">05 / Орієнтири вартості</span>
-          <h2>Можна почати з малого. Головне — одразу закласти правильну основу.</h2>
-          <p>Фінальна оцінка залежить від сторінок, логіки, інтеграцій та обсягу контенту.</p>
-        </div>
-        <div className="sales3-pricing-grid">
-          {pricing.slice(0, 3).map((plan, index) => (
-            <article key={plan.id || plan.title} className={plan.highlighted ? 'is-featured' : ''} data-sales-reveal>
-              <div className="sales3-price-top"><span>{String(index + 1).padStart(2, '0')}</span><small>{plan.duration}</small></div>
-              <h3>{plan.title}</h3>
-              <p>{plan.tagline}</p>
-              <div className="sales3-price-value"><small>від</small><strong>{Number(plan.price_uah).toLocaleString('uk-UA')} грн</strong></div>
-              <ul>{(plan.features || []).map((feature) => <li key={feature}><Check size={15} />{feature}</li>)}</ul>
-              <Link to="/contact">Отримати оцінку <ArrowUpRight size={18} /></Link>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+  const { language, locale } = useLanguage()
+  const c = language === 'en' ? { index:'05 / Pricing guidance', title:'You can start small. The key is to build the right foundation from day one.', intro:'The final estimate depends on the pages, logic, integrations, and amount of content.', from:'from', currency:'UAH', action:'Get an estimate' } : { index:'05 / Орієнтири вартості', title:'Можна почати з малого. Головне — одразу закласти правильну основу.', intro:'Фінальна оцінка залежить від сторінок, логіки, інтеграцій та обсягу контенту.', from:'від', currency:'грн', action:'Отримати оцінку' }
+  return <section className="sales3-pricing" id="pricing"><div className="sales3-shell"><div className="sales3-section-head" data-sales-reveal><span className="sales3-section-index">{c.index}</span><h2>{c.title}</h2><p>{c.intro}</p></div><div className="sales3-pricing-grid">{pricing.slice(0,3).map((plan,index) => <article key={plan.id || plan.title} className={plan.highlighted ? 'is-featured' : ''} data-sales-reveal><div className="sales3-price-top"><span>{String(index+1).padStart(2,'0')}</span><small>{plan.duration}</small></div><h3>{plan.title}</h3><p>{plan.tagline}</p><div className="sales3-price-value"><small>{c.from}</small><strong>{Number(plan.price_uah).toLocaleString(locale)} {c.currency}</strong></div><ul>{(plan.features || []).map((feature) => <li key={feature}><Check size={15} />{feature}</li>)}</ul><Link to="/contact">{c.action} <ArrowUpRight size={18} /></Link></article>)}</div></div></section>
 }

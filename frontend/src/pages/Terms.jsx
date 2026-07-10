@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { AlertCircle, ArrowUpRight, CheckCircle2, FileCheck2, Handshake, Scale, ShieldCheck } from 'lucide-react'
 import api, { unwrap } from '../lib/api'
 import { fallbackSettings } from '../data/fallbackData'
+import { useLanguage } from '../i18n/LanguageContext'
+import { localizeSettings } from '../i18n/localizedData'
 import '../styles/secondary-base.css'
 import '../styles/legal.css'
 import '../styles/secondary-responsive.css'
@@ -21,7 +23,83 @@ const sections = [
   ['disputes', '12. Спори та зміни'],
 ]
 
+const englishSections = [
+  ['general', '1. General provisions'],
+  ['offer', '2. Status of information'],
+  ['order', '3. Ordering process'],
+  ['price', '4. Pricing and payment'],
+  ['delivery', '5. Timing and acceptance'],
+  ['client', '6. Client responsibilities'],
+  ['ip', '7. Intellectual property'],
+  ['portfolio', '8. Portfolio use'],
+  ['services', '9. Third-party services'],
+  ['liability', '10. Liability'],
+  ['cancel', '11. Cancellation and refunds'],
+  ['disputes', '12. Disputes and updates'],
+]
+
+function TermsEnglish({ settings }) {
+  const telegramUrl = `https://t.me/${String(settings.telegram || '').replace('@', '')}`
+  const phoneUrl = `tel:${String(settings.phone || '').replace(/\s/g, '')}`
+  if (isEnglish) return <TermsEnglish settings={localizeSettings(settings, 'en')} />
+
+  return (
+    <div className="legal-page modern-page">
+      <section className="legal-hero terms-hero">
+        <div className="container-shell legal-hero-grid">
+          <div><div className="modern-kicker"><span>Legal information</span><i /> Version dated July 6, 2026</div><h1>Website <em>terms of use</em></h1><p>Rules for using the portfolio, submitting inquiries, and discussing digital product development services.</p></div>
+          <div className="legal-hero-card"><Scale size={30} /><strong>Clear agreements</strong><p>The exact scope, price, timeline, and rights are documented in an individual offer, correspondence, or agreement.</p></div>
+        </div>
+      </section>
+
+      <section className="legal-summary-section">
+        <div className="container-shell legal-summary-grid">
+          <article><i><Handshake size={21} /></i><span>Cooperation</span><strong>Individual scope for every project</strong></article>
+          <article><i><FileCheck2 size={21} /></i><span>Confirmation</span><strong>Written offer or agreement</strong></article>
+          <article><i><CheckCircle2 size={21} /></i><span>Acceptance</span><strong>Stage-by-stage review and approval</strong></article>
+          <article><i><ShieldCheck size={21} /></i><span>Protection</span><strong>Mandatory legal rights remain in force</strong></article>
+        </div>
+      </section>
+
+      <section className="modern-section legal-content-section">
+        <div className="container-shell legal-layout">
+          <aside className="legal-toc"><span>Contents</span><nav>{englishSections.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav><div><AlertCircle size={18} /><p>Questions about the terms:</p><a href={`mailto:${settings.email}`}>{settings.email}</a></div></aside>
+
+          <article className="legal-document">
+            <div className="legal-notice"><AlertCircle size={20} /><p><strong>Important.</strong> Prices, timelines, and service descriptions on this website are indicative. The individual agreement with a client takes priority.</p></div>
+
+            <section id="general"><span>01</span><h2>General provisions</h2><p>These terms govern use of the portfolio website and the initial exchange of information regarding website, web system, automation, and related development services. The website owner and potential service provider is <strong>{settings.full_name}</strong>, {settings.city}.</p><p>By browsing the website or submitting an inquiry, you confirm that you have read these terms. Submitting a form does not automatically create a contract or oblige either party to begin work.</p></section>
+
+            <section id="offer"><span>02</span><h2>Status of website information</h2><p>Project examples, service packages, estimated prices, timelines, descriptions, and performance indicators are provided for general information. They are not a public offer unless a specific statement clearly says otherwise.</p><p>A binding commitment arises only after the parties agree on the essential terms in writing, including the task, scope, price, payment schedule, timeline, acceptance procedure, support, and intellectual property rights.</p></section>
+
+            <section id="order"><span>03</span><h2>How a project is ordered</h2><p>Cooperation usually begins with an inquiry through the website, Telegram, email, or phone. The provider may request a brief, examples, source materials, access requirements, and information about the client’s goals.</p><p>After clarification, the client receives an estimate, offer, work plan, or draft agreement. Work begins after written approval and, where agreed, receipt of an advance payment and required materials.</p><p>The provider may decline a project that is unlawful, misleading, technically unsafe, beyond available capacity, or incompatible with professional standards.</p></section>
+
+            <section id="price"><span>04</span><h2>Pricing, payment, and additional work</h2><p>The final price depends on the approved scope, complexity, number of pages and roles, integrations, content volume, design requirements, and delivery conditions. Taxes, provider fees, paid licences, domains, hosting, advertising budgets, and third-party subscriptions are included only where expressly stated.</p><p>Payment may be divided into stages. An advance reserves production time and covers the agreed initial stage. Additional requests outside the approved scope are estimated separately and may affect both price and timeline.</p><p>Invoices and payment instructions are provided through the communication channel agreed by the parties. The client is responsible for using correct payment details and paying any bank or payment-system fees unless agreed otherwise.</p></section>
+
+            <section id="delivery"><span>05</span><h2>Timing, review, and acceptance</h2><p>Timelines are calculated after the task, materials, and start date are confirmed. They may change when the client delays feedback, changes requirements, fails to provide materials or access, or when third-party services cause delays outside the provider’s reasonable control.</p><p>Intermediate and final results may be delivered through a test website, repository, archive, design preview, video demonstration, or another agreed format. The client should review each stage and provide one consolidated list of comments within the agreed period.</p><p>A stage may be considered accepted after written approval, publication, active use, or expiry of the review period without substantiated comments, where this procedure was agreed in advance and does not limit mandatory consumer rights.</p></section>
+
+            <section id="client"><span>06</span><h2>Client responsibilities</h2><p>The client must provide accurate information, materials, access credentials, decisions, and feedback on time. The client confirms that supplied texts, trademarks, photographs, videos, databases, and other materials may lawfully be used for the project.</p><p>The client is responsible for the legality and accuracy of their business content, offers, prices, personal-data notices, and information provided to end users. Regulated activities may require separate legal review, licences, or mandatory consumer disclosures.</p></section>
+
+            <section id="ip"><span>07</span><h2>Copyright and rights to the result</h2><p>Rights to source code, design, text, graphics, and other deliverables are determined by the individual agreement. Unless expressly agreed otherwise, the economic rights to the specially created final deliverable transfer within the agreed scope after full payment. Before full payment, unpaid materials may be used only for review and approval.</p><p>Third-party libraries, open-source code, content-management systems, fonts, photographs, icons, and services remain subject to their respective licences. Reusable tools, general modules, methods, and know-how that do not contain the client’s confidential information may be used in other work unless the parties agree otherwise.</p></section>
+
+            <section id="portfolio"><span>08</span><h2>Project publication in the portfolio</h2><p>The use of a client’s name, logo, screenshots, link, and general project description is agreed with the client. Confidential information, private metrics, credentials, and internal data are not published without permission.</p><p>An express non-disclosure or no-publication agreement takes priority. Demonstration concepts and products under development may be clearly labelled as such on the website.</p></section>
+
+            <section id="services"><span>09</span><h2>Hosting, domains, and third-party services</h2><p>A project may depend on hosting, domain registrars, payment providers, email, Telegram, Google, AI providers, and other third parties. Their pricing, rules, availability, and policies may change independently of the developer.</p><p>Unless agreed otherwise, the client owns the primary service accounts and pays recurring third-party charges. The provider is not responsible for outages, blocks, API changes, or loss of access caused outside reasonable control, but may assist with diagnostics under a separate support arrangement.</p></section>
+
+            <section id="liability"><span>10</span><h2>Warranties, security, and limitation of liability</h2><p>The provider will perform agreed work in good faith and with professional care. No website can guarantee a specific income, number of leads, search ranking, or uninterrupted operation of third-party infrastructure unless such a guarantee is expressly included in an agreement.</p><p>The client should replace temporary passwords, keep content current, and follow security recommendations. After any included warranty or support period, updates, backups, and monitoring are the client’s responsibility unless covered by a separate service.</p><p>Nothing in these terms excludes liability where exclusion is prohibited by law or removes mandatory consumer protections. In the absence of wilful misconduct or gross negligence, liability is determined by the individual agreement and proven direct losses.</p></section>
+
+            <section id="cancel"><span>11</span><h2>Scope changes, termination, and refunds</h2><p>Either party may initiate termination in accordance with the individual agreement. The final calculation covers completed work, reserved production time, and approved expenses already incurred. Work that has not been performed is not charged unless the agreement or applicable law provides otherwise.</p><p>An advance may be fully or partly non-refundable to the extent it covers completed work, purchased licences, transaction fees, and reserved resources, provided this was clearly agreed in advance. Mandatory rules on distance contracts, cancellation, and refunds apply to consumers where relevant.</p></section>
+
+            <section id="disputes"><span>12</span><h2>Personal data, disputes, and changes</h2><p>Personal data processing is governed by the <a href="/privacy">Privacy Policy</a>. The parties should first attempt to resolve disagreements through negotiation and a written exchange of positions. Unresolved disputes are handled under the laws of Ukraine by a competent authority or court.</p><p>Mandatory provisions of Ukrainian civil law, e-commerce law, personal-data law, copyright law, and consumer-protection law apply depending on the parties’ status and the nature of the service.</p><p>These terms may be updated. A new version applies to future website use and new inquiries from the moment of publication, but it does not amend an existing agreement without the parties’ consent unless the law provides otherwise.</p><p>Contacts: <a href={`mailto:${settings.email}`}>{settings.email}</a>, <a href={telegramUrl} target="_blank" rel="noreferrer">{settings.telegram}</a>, <a href={phoneUrl}>{settings.phone}</a>.</p><a className="legal-contact-link" href={`mailto:${settings.email}`}>Ask a question about the terms <ArrowUpRight size={17} /></a></section>
+          </article>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 export default function Terms() {
+  const { isEnglish } = useLanguage()
   const [settings, setSettings] = useState(fallbackSettings)
 
   useEffect(() => {

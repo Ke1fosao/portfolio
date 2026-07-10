@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     SiteSettings, Service, Project, Testimonial, PricingPlan, FAQ,
-    BlogPost, ContactLead, TelegramBotUser, PageSection, MediaAsset,
+    BlogPost, ContactLead, TelegramBotUser, NotificationDelivery, PageSection, MediaAsset,
     SeoMetadata, EditorDraft, Certificate, AboutPage, ContentVersion,
     AdminActionLog, AdminBackup, AdminProfile, AdminSecuritySettings,
 )
@@ -191,6 +191,18 @@ class TelegramBotUserSerializer(serializers.ModelSerializer):
             'language_code', 'last_command', 'last_seen_at', 'created_at', 'updated_at',
             'display_name',
         ]
+
+
+class NotificationDeliverySerializer(serializers.ModelSerializer):
+    lead_name = serializers.CharField(source='lead.name', read_only=True)
+    lead_status = serializers.CharField(source='lead.status', read_only=True)
+    channel_label = serializers.CharField(source='get_channel_display', read_only=True)
+    status_label = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = NotificationDelivery
+        fields = '__all__'
+        read_only_fields = ['created_at', 'sent_at', 'lead_name', 'lead_status', 'channel_label', 'status_label']
 
 
 class PageSectionSerializer(serializers.ModelSerializer):

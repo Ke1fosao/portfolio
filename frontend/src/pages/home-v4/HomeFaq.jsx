@@ -1,28 +1,4 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-
-export default function HomeFaq({ faqs }) {
-  const [open, setOpen] = useState(faqs[0]?.id || null)
-  return (
-    <section className="sales3-faq">
-      <div className="sales3-shell sales3-faq-layout">
-        <div data-sales-reveal><span className="sales3-section-index">06 / FAQ</span><h2>Питання, які зазвичай виникають до старту.</h2></div>
-        <div className="sales3-faq-list" data-sales-reveal>
-          {faqs.slice(0, 6).map((item, index) => {
-            const isOpen = open === item.id
-            return (
-              <article key={item.id} className={isOpen ? 'is-open' : ''}>
-                <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : item.id)}>
-                  <span>{String(index + 1).padStart(2, '0')}</span>
-                  <strong>{item.question}</strong>
-                  <i><ChevronDown size={20} /></i>
-                </button>
-                <div className="sales3-faq-answer"><div><p>{item.answer}</p></div></div>
-              </article>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
+import { useLanguage } from '../../i18n/LanguageContext'
+export default function HomeFaq({ faqs }) { const { language } = useLanguage(); const [open,setOpen] = useState(faqs[0]?.id || null); return <section className="sales3-faq"><div className="sales3-shell sales3-faq-layout"><div data-sales-reveal><span className="sales3-section-index">06 / FAQ</span><h2>{language === 'en' ? 'Questions that usually come up before a project starts.' : 'Питання, які зазвичай виникають до старту.'}</h2></div><div className="sales3-faq-list" data-sales-reveal>{faqs.slice(0,6).map((item,index) => { const isOpen = open === item.id; return <article key={item.id} className={isOpen ? 'is-open' : ''}><button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : item.id)}><span>{String(index+1).padStart(2,'0')}</span><strong>{item.question}</strong><i><ChevronDown size={20} /></i></button><div className="sales3-faq-answer"><div><p>{item.answer}</p></div></div></article> })}</div></div></section> }

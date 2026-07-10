@@ -1,29 +1,8 @@
 import { ArrowUpRight } from 'lucide-react'
+import { useLanguage } from '../../i18n/LanguageContext'
 
-const steps = [
-  ['01', 'Розбираємо задачу', 'Не починаю з кольорів. Спочатку з’ясовую, що має змінитися в бізнесі після запуску.'],
-  ['02', 'Проєктую рішення', 'Структура, сценарії користувача, дані, ролі, сторінки та логіка керування.'],
-  ['03', 'Показую прогрес', 'Клієнт бачить проміжний результат і розуміє, що відбувається на кожному етапі.'],
-  ['04', 'Запускаю й підтримую', 'Тестування, домен, аналітика, навчання роботі з адмінпанеллю та подальший розвиток.'],
-]
-
-export default function HomeProcess({ telegram }) {
-  return (
-    <section className="sales3-process" id="process">
-      <div className="sales3-shell">
-        <div className="sales3-process-intro" data-sales-reveal>
-          <span className="sales3-section-index">04 / Як проходить робота</span>
-          <h2>Зрозумілий процес без зникнень, хаосу й сюрпризів у кінці.</h2>
-          <a href={telegram} target="_blank" rel="noreferrer">Обговорити задачу <ArrowUpRight size={18} /></a>
-        </div>
-        <div className="sales3-process-list">
-          {steps.map(([number, title, text]) => (
-            <article key={number} data-sales-reveal>
-              <span>{number}</span><h3>{title}</h3><p>{text}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+const DATA = {
+  uk: { index:'04 / Як проходить робота', title:'Зрозумілий процес без зникнень, хаосу й сюрпризів у кінці.', action:'Обговорити задачу', steps:[['01','Розбираємо задачу','Не починаю з кольорів. Спочатку з’ясовую, що має змінитися в бізнесі після запуску.'],['02','Проєктую рішення','Структура, сценарії користувача, дані, ролі, сторінки та логіка керування.'],['03','Показую прогрес','Клієнт бачить проміжний результат і розуміє, що відбувається на кожному етапі.'],['04','Запускаю й підтримую','Тестування, домен, аналітика, навчання роботі з адмінпанеллю та подальший розвиток.']] },
+  en: { index:'04 / How the work is organized', title:'A clear process without disappearing, chaos, or end-of-project surprises.', action:'Discuss the task', steps:[['01','Understand the task','I do not start with colors. First I determine what should change in the business after launch.'],['02','Design the solution','Structure, user scenarios, data, roles, pages, and management logic.'],['03','Show progress','The client sees intermediate results and understands what is happening at every stage.'],['04','Launch and support','Testing, domain setup, analytics, admin panel onboarding, and further development.']] },
 }
+export default function HomeProcess({ telegram }) { const { language } = useLanguage(); const c = DATA[language]; return <section className="sales3-process" id="process"><div className="sales3-shell"><div className="sales3-process-intro" data-sales-reveal><span className="sales3-section-index">{c.index}</span><h2>{c.title}</h2><a href={telegram} target="_blank" rel="noreferrer">{c.action} <ArrowUpRight size={18} /></a></div><div className="sales3-process-list">{c.steps.map(([number,title,text]) => <article key={number} data-sales-reveal><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div></div></section> }
