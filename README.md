@@ -9,7 +9,7 @@
 
 ## Живий сайт
 
-**[Відкрити портфоліо](https://portfolio-ke1fosao.vercel.app)**
+**[Відкрити портфоліо](https://portfolio-ke1fosaos-projects.vercel.app)**
 
 > Frontend розгортається на Vercel. Django API, база даних, CRM-функції та Telegram-інтеграція потребують окремого backend deployment і значення `VITE_API_URL`.
 
@@ -102,7 +102,7 @@ npm run dev
 ```bash
 cd frontend
 npm ci
-VITE_SITE_URL=https://portfolio-ke1fosao.vercel.app npm run build
+VITE_SITE_URL=https://portfolio-ke1fosaos-projects.vercel.app npm run build
 npm run preview
 ```
 
