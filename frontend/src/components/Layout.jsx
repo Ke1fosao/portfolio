@@ -23,7 +23,7 @@ const COPY = {
 }
 
 export default function Layout({ children }) {
-  const { language } = useLanguage()
+  const { language, isLanguageTransitioning } = useLanguage()
   const copy = COPY[language]
   const links = copy.links
   const mobilePrimaryLinks = links.filter(([to]) => ['/', '/contact'].includes(to))
@@ -71,7 +71,7 @@ export default function Layout({ children }) {
   const telegram = settings.socials?.telegram || `https://t.me/${settings.telegram?.replace('@', '')}`
 
   return (
-    <div className="site-shell">
+    <div className={`site-shell ${isLanguageTransitioning ? 'is-language-transitioning' : ''}`}>
       <RouteSEO settings={settings} />
       <header className="header">
         <div className="container-shell header-inner">
@@ -94,7 +94,7 @@ export default function Layout({ children }) {
           </div>
         </div>
 
-        <div className={`mobile-menu-overlay ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen}>
+        <div className={`mobile-menu-overlay ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen} inert={!menuOpen ? '' : undefined}>
           <div className="mobile-menu-sheet" id="mobile-site-menu" role="dialog" aria-modal="true" aria-label={copy.mobileMenu} onClick={(event) => event.stopPropagation()}>
             <div className="mobile-menu-head"><div><small>{copy.navigation}</small><strong>{copy.where}</strong></div><button onClick={() => setMenuOpen(false)} aria-label={copy.close}><X size={20} /></button></div>
             <LanguageSwitcher className="mobile-menu-language" />
