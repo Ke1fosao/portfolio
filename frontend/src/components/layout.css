@@ -381,3 +381,130 @@
   .mobile-menu-language button.is-active { background: #d8ff80; color: #151513; }
   .mobile-menu-language > span { background: rgba(255,255,255,.16); }
 }
+
+/* Mobile header and language switcher — authoritative layer */
+.language-switcher {
+  --language-gap: 4px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--language-gap);
+  width: 82px;
+  min-width: 82px;
+  height: 38px;
+  min-height: 38px;
+  padding: 4px;
+}
+.language-switcher button {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 0;
+  background: transparent !important;
+  transition: color .18s ease, opacity .18s ease;
+}
+.language-switcher button:hover { transform: none; }
+.language-switcher button.is-active { color: #fff; }
+.language-switcher-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  left: 4px;
+  width: calc((100% - 12px) / 2);
+  height: 30px;
+  border-radius: 999px;
+  background: #151513;
+  transform: translateX(0);
+  transition: transform .22s cubic-bezier(.2,.8,.2,1), background .18s ease;
+}
+body[data-language="en"] .language-switcher-indicator { transform: translateX(calc(100% + var(--language-gap))); }
+.language-switcher.is-compact {
+  width: 70px;
+  min-width: 70px;
+  height: 36px;
+  min-height: 36px;
+  padding: 4px;
+}
+.language-switcher.is-compact button { height: 28px; }
+.language-switcher.is-compact .language-switcher-indicator { width: calc((100% - 12px) / 2); height: 28px; }
+.mobile-menu-language .language-switcher-indicator { background: #d8ff80; }
+.mobile-menu-language button.is-active { color: #151513; }
+.site-shell main {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.site-shell.is-language-transitioning main { opacity: .72; transform: translateY(2px); }
+
+@media (max-width: 820px) {
+  :root { --mobile-header-control: 44px; }
+  .header {
+    background: rgba(246,245,238,.92);
+    box-shadow: 0 10px 30px rgba(23,32,25,.07);
+    backdrop-filter: blur(20px);
+  }
+  .header-inner {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr);
+    gap: 10px;
+    width: min(100% - 24px, 1380px);
+    min-height: 64px;
+  }
+  .header .logo { font-size: 24px; white-space: nowrap; }
+  .header .mobile-nav {
+    display: grid;
+    grid-template-columns: 70px var(--mobile-header-control) var(--mobile-header-control);
+    justify-content: end;
+    justify-self: end;
+    gap: 7px;
+    min-width: 0;
+  }
+  .header .mobile-nav .icon-btn,
+  .header .mobile-nav .mobile-menu-trigger {
+    width: var(--mobile-header-control);
+    min-width: var(--mobile-header-control);
+    height: var(--mobile-header-control);
+    min-height: 44px;
+  }
+  .mobile-menu-trigger { box-shadow: 0 10px 24px rgba(21,21,19,.14); }
+  .mobile-menu-overlay {
+    visibility: hidden;
+    padding: max(10px, env(safe-area-inset-top)) 8px max(10px, env(safe-area-inset-bottom));
+    transition: opacity .25s ease, visibility 0s linear .25s;
+  }
+  .mobile-menu-overlay:not(.is-open) { visibility: hidden; pointer-events: none; }
+  .mobile-menu-overlay.is-open { visibility: visible; pointer-events: auto; transition-delay: 0s; }
+  .mobile-menu-sheet {
+    width: min(410px, calc(100vw - 16px));
+    height: calc(100dvh - max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    padding: 18px;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+  }
+  .mobile-menu-head button,
+  .mobile-menu-primary a,
+  .mobile-menu-sheet nav a,
+  .mobile-menu-contact { min-height: 44px; }
+  .mobile-menu-sheet nav { min-height: 0; overflow-y: auto; }
+  .mobile-menu-contact { flex: 0 0 54px; }
+}
+
+@media (max-width: 460px) {
+  .header-inner { width: calc(100% - 16px); gap: 6px; }
+  .header .logo { font-size: 22px; }
+  .header .mobile-nav { gap: 5px; }
+  .mobile-menu-sheet { padding: 15px; border-radius: 22px; }
+  .mobile-menu-head strong { font-size: clamp(22px, 8vw, 30px); }
+  .mobile-menu-primary { grid-template-columns: 1fr 1fr; }
+  .mobile-menu-primary a { min-height: 82px; padding: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .language-switcher-indicator,
+  .site-shell main,
+  .mobile-menu-overlay,
+  .mobile-menu-sheet { transition-duration: .01ms !important; }
+}
